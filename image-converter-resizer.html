@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Birdi's Image → WebP (with Crop)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap');
+
+    :root{
+      --color-background-page: #F6F7F8;
+      --color-background-primary: #FFFFFF;
+      --color-background-secondary: #F1F3F4;
+      --color-text-primary: #121415;
+      --color-text-secondary: #5B6166;
+      --color-text-tertiary: #8B9298;
+      --color-border-secondary: rgba(18, 20, 21, 0.18);
+      --color-border-tertiary: rgba(18, 20, 21, 0.10);
+      --color-shadow: rgba(0,0,0,0.06);
+      --accent: #1D9E75;
+      --accent-strong: #0F6E56;
+      --danger: #A32D2D;
+      --danger-bg: #FCEBEB;
+      --success: #3B6D11;
+      --success-bg: #EAF3DE;
+      --warn-bg: #F1EFE8;
+      --warn: #5F5E5A;
+      --border-radius-lg: 16px;
+      --border-radius-md: 12px;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        --color-background-page: #0C0F10;
+        --color-background-primary: #121617;
+        --color-background-secondary: #0F1314;
+        --color-text-primary: #EEF2F3;
+        --color-text-secondary: #AEB7BC;
+        --color-text-tertiary: #7F8A90;
+        --color-border-secondary: rgba(238,242,243,0.20);
+        --color-border-tertiary: rgba(238,242,243,0.12);
+        --color-shadow: rgba(0,0,0,0.40);
+        --success-bg: rgba(59,109,17,0.20);
+        --danger-bg: rgba(163,45,45,0.22);
+        --warn-bg: rgba(95,94,90,0.22);
+      }
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      background: radial-gradient(1200px 600px at 12% 8%, rgba(29,158,117,0.10), transparent 55%),
+                  radial-gradient(900px 500px at 90% 20%, rgba(29,158,117,0.07), transparent 55%),
+                  var(--color-background-page);
+      color:var(--color-text-primary);
+    }
+
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+      clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+
+    #root{font-family:'Syne',sans-serif;padding:2.25rem 0}
+    .wrap{max-width:980px;margin:0 auto;padding:0 18px}
+    .header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px}
+    .title{font-size:24px;line-height:1.15;font-weight:700;letter-spacing:-0.02em}
+    .subtitle{margin-top:6px;font-size:12px;color:var(--color-text-secondary);font-family:'DM Mono',monospace}
+
+    .card{
+      background:var(--color-background-primary);
+      border:0.5px solid var(--color-border-tertiary);
+      border-radius:var(--border-radius-lg);
+      box-shadow:0 10px 30px var(--color-shadow);
+      padding:16px;
+    }
+
+    .top-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:99px;
+      border:0.5px solid var(--color-border-tertiary);
+      background:var(--color-background-secondary);
+      font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary)
+    }
+    .pill strong{color:var(--color-text-primary);font-weight:600}
+
+    .btn-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .btn{
+      appearance:none;border:none;cursor:pointer;
+      border-radius:10px;padding:8px 12px;
+      font-size:12px;font-weight:650;letter-spacing:-0.01em;
+      transition:transform .05s ease, background .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
+      user-select:none;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{background:var(--accent-strong)}
+    .btn-primary:disabled{opacity:.5;cursor:default;transform:none}
+    .btn-ghost{
+      background:transparent;color:var(--color-text-primary);
+      border:0.5px solid var(--color-border-secondary);
+    }
+    .btn-ghost:hover{background:var(--color-background-secondary)}
+    .btn-danger{
+      background:transparent;color:var(--danger);
+      border:0.5px solid rgba(163,45,45,0.35);
+    }
+    .btn-danger:hover{background:var(--danger-bg)}
+
+    #dropzone{
+      border:1.5px dashed var(--color-border-secondary);
+      border-radius:var(--border-radius-lg);
+      padding:2.25rem 1.5rem;
+      text-align:center;
+      cursor:pointer;
+      transition:all .2s;
+      background:linear-gradient(180deg, var(--color-background-secondary), transparent 60%);
+      outline:none;
+      position:relative;
+    }
+    #dropzone.drag{border-color:var(--accent);background:linear-gradient(180deg, rgba(29,158,117,0.12), transparent 60%)}
+    #dropzone:focus-visible{box-shadow:0 0 0 4px rgba(29,158,117,0.18);border-color:var(--accent)}
+    #dropzone svg{margin-bottom:1rem;opacity:.7}
+    .drop-title{font-size:18px;font-weight:700;margin-bottom:.5rem;letter-spacing:-0.01em}
+    .drop-sub{font-size:12px;color:var(--color-text-secondary);font-family:'DM Mono',monospace}
+    .drop-actions{margin-top:14px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+    #file-input{display:none}
+
+    #controls{
+      display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap;
+      padding:10px 12px;border-radius:var(--border-radius-md);
+      background:var(--color-background-secondary);
+      border:0.5px solid var(--color-border-tertiary);
+    }
+    .ctrl-label{font-size:12px;color:var(--color-text-secondary);font-family:'DM Mono',monospace;white-space:nowrap}
+    #quality-wrap{display:flex;align-items:center;gap:10px}
+    #quality{width:160px}
+    #quality-val{font-size:12px;font-family:'DM Mono',monospace;min-width:42px;text-align:right}
+    .divider{width:0.5px;height:20px;background:var(--color-border-tertiary)}
+    #width-wrap{display:flex;align-items:center;gap:8px}
+    #width-input{
+      width:108px;font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;
+      border:0.5px solid var(--color-border-secondary);border-radius:10px;
+      background:var(--color-background-primary);color:var(--color-text-primary);text-align:center
+    }
+    #width-input::placeholder{color:var(--color-text-tertiary)}
+    #width-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,158,117,0.16)}
+    .unit{font-size:12px;font-family:'DM Mono',monospace;color:var(--color-text-secondary)}
+
+    .progress{
+      margin-left:auto;
+      display:flex;align-items:center;gap:10px;min-width:220px;flex:1;
+      justify-content:flex-end;
+    }
+    .progressbar{
+      height:10px;flex:1;min-width:140px;max-width:320px;border-radius:999px;
+      background:rgba(0,0,0,0.10);overflow:hidden;border:0.5px solid var(--color-border-tertiary);
+    }
+    @media (prefers-color-scheme: dark){
+      .progressbar{background:rgba(255,255,255,0.10)}
+    }
+    .progressbar > div{height:100%;width:0%;background:linear-gradient(90deg, var(--accent), rgba(29,158,117,0.55));transition:width .25s ease;border-radius:999px}
+    .progress-text{font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);white-space:nowrap}
+
+    #queue{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+
+    .item{
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) minmax(0,340px);
+      gap:12px;align-items:center;
+      background:var(--color-background-primary);
+      border:0.5px solid var(--color-border-tertiary);
+      border-radius:var(--border-radius-md);
+      padding:.8rem .9rem;
+    }
+    .thumb{width:52px;height:52px;object-fit:cover;border-radius:12px;background:var(--color-background-secondary)}
+    .thumb-ph{
+      width:52px;height:52px;border-radius:12px;background:var(--color-background-secondary);
+      display:flex;align-items:center;justify-content:center;font-size:11px;
+      font-family:'DM Mono',monospace;color:var(--color-text-tertiary)
+    }
+    .item-name{font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .item-meta{font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);margin-top:3px}
+
+    .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-family:'DM Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    .badge-done{background:var(--success-bg);color:var(--success)}
+    .badge-wait{background:var(--warn-bg);color:var(--warn)}
+    .badge-err{background:var(--danger-bg);color:var(--danger)}
+    .badge-crop{background:rgba(29,158,117,0.14);color:var(--accent)}
+    .badge-q{background:rgba(91,97,102,0.14);color:var(--color-text-secondary)}
+    .badge-q-override{background:rgba(29,158,117,0.14);color:var(--accent)}
+
+    .item-actions{
+      display:flex;flex-direction:column;align-items:stretch;gap:8px;
+      width:100%;
+      max-width:340px;
+      justify-self:end;
+    }
+    .item-actions-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .item-quality{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 10px;border-radius:12px;
+      background:var(--color-background-secondary);
+      border:0.5px solid var(--color-border-tertiary);
+      width:100%;
+      max-width:100%;
+    }
+    .item-quality label{
+      font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);white-space:nowrap
+    }
+    .item-quality .qmode{
+      font-size:10px;font-family:'DM Mono',monospace;
+      padding:2px 8px;border-radius:999px;
+      border:0.5px solid var(--color-border-tertiary);
+      color:var(--color-text-secondary);
+      background:var(--color-background-primary);
+      white-space:nowrap;
+    }
+    .item-quality .qmode.override{border-color:rgba(29,158,117,0.35);color:var(--accent)}
+    .item-quality input[type="range"]{flex:1;min-width:120px}
+    .item-quality .qval{font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);min-width:46px;text-align:right}
+    .item-quality .qreset{
+      font-family:'DM Mono',monospace;font-size:11px;
+      background:transparent;border:0.5px solid var(--color-border-secondary);
+      border-radius:10px;padding:6px 10px;cursor:pointer;color:var(--color-text-primary)
+    }
+    .item-quality .qreset:hover{background:var(--color-background-primary)}
+
+    @media (max-width: 720px){
+      .item{
+        grid-template-columns:52px minmax(0,1fr);
+        grid-template-rows:auto auto;
+        align-items:start;
+      }
+      .item-actions{
+        grid-column:1 / -1;
+        max-width:100%;
+        justify-self:stretch;
+      }
+      .item-actions-row{justify-content:flex-start}
+    }
+    .icon-btn{
+      font-family:'DM Mono',monospace;font-size:11px;
+      background:transparent;border:0.5px solid var(--color-border-secondary);
+      border-radius:10px;padding:6px 10px;cursor:pointer;
+      color:var(--color-text-primary);transition:background .15s, border-color .15s, color .15s;
+    }
+    .icon-btn:hover{background:var(--color-background-secondary)}
+    .icon-btn:disabled{opacity:.5;cursor:default}
+    .icon-btn-danger{color:var(--danger);border-color:rgba(163,45,45,0.35)}
+    .icon-btn-danger:hover{background:var(--danger-bg)}
+
+    #dl-all-wrap{margin-top:12px;display:flex;justify-content:flex-end}
+    #dl-all{font-family:'DM Mono',monospace;font-size:12px;background:transparent;border:0.5px solid var(--accent);color:var(--accent);border-radius:10px;padding:8px 14px;cursor:pointer;transition:all .15s}
+    #dl-all:hover{background:var(--success-bg)}
+    #dl-all:disabled{opacity:.5;cursor:default}
+
+    .size-save{color:var(--accent);font-weight:650}
+
+    .toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      background:var(--color-background-primary);
+      border:0.5px solid var(--color-border-tertiary);
+      box-shadow:0 10px 28px var(--color-shadow);
+      border-radius:999px;padding:10px 14px;
+      font-size:12px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);
+      opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+      z-index:50;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+
+    /* Crop modal */
+    .modal{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+      padding:18px;background:rgba(0,0,0,0.45);z-index:60;
+    }
+    .modal.show{display:flex}
+    .modal-card{
+      width:min(980px, 100%);
+      background:var(--color-background-primary);
+      border:0.5px solid var(--color-border-tertiary);
+      border-radius:var(--border-radius-lg);
+      box-shadow:0 18px 60px var(--color-shadow);
+      overflow:hidden;
+    }
+    .modal-head{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary);
+      background:linear-gradient(180deg, var(--color-background-secondary), transparent);
+    }
+    .modal-title{font-weight:700;letter-spacing:-0.01em}
+    .modal-sub{font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);margin-top:4px}
+    .modal-body{
+      display:grid;grid-template-columns: 1fr 280px;
+      gap:12px;padding:12px;
+    }
+    @media (max-width: 860px){
+      .modal-body{grid-template-columns:1fr}
+    }
+    .crop-stage{
+      border-radius:var(--border-radius-md);
+      border:0.5px solid var(--color-border-tertiary);
+      background:var(--color-background-secondary);
+      overflow:hidden;
+      min-height: 320px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    #crop-image{max-width:100%;max-height:70vh;display:block}
+    .side{
+      border-radius:var(--border-radius-md);
+      border:0.5px solid var(--color-border-tertiary);
+      background:var(--color-background-secondary);
+      padding:12px;
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .side h4{font-size:12px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);font-weight:500}
+    .seg{
+      display:flex;flex-wrap:wrap;gap:8px;
+    }
+    .seg button{
+      font-family:'DM Mono',monospace;font-size:11px;
+      border-radius:999px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);
+      background:transparent;color:var(--color-text-primary);cursor:pointer;
+    }
+    .seg button.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,158,117,0.14)}
+    .kv{font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);line-height:1.35}
+    .modal-foot{
+      display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;
+      padding:12px 14px;border-top:0.5px solid var(--color-border-tertiary);
+    }
+  </style>
+</head>
+<body>
+  <h2 class="sr-only">Birdi's Image to WebP converter with crop — drop images to convert, optionally crop and resize them</h2>
+
+  <div id="root">
+    <div class="wrap">
+      <div class="header">
+        <div>
+          <div class="title">Birdi's Image → WebP</div>
+          <div class="subtitle">Crop + convert locally in your browser. Nothing is uploaded.</div>
+        </div>
+        <div class="pill" id="summary-pill" style="display:none">
+          <span>Queue</span> <strong id="summary-count">0</strong>
+          <span>·</span>
+          <span>Done</span> <strong id="summary-done">0</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="top-row">
+          <div class="pill">
+            <span>Supports</span> <strong>PNG</strong><span>·</span><strong>JPEG</strong><span>·</span><strong>GIF</strong><span>·</span><strong>BMP</strong><span>·</span><strong>TIFF</strong><span>·</span><strong>AVIF</strong>
+          </div>
+          <div class="btn-row" id="top-actions" style="display:none">
+            <button class="btn btn-ghost" id="browse-btn" type="button">Add images</button>
+            <button class="btn btn-danger" id="clear-btn" type="button">Clear</button>
+          </div>
+        </div>
+
+        <div id="dropzone" role="button" tabindex="0" aria-label="Add images by dropping files here or browsing">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="40" height="40" rx="10" fill="var(--color-background-primary)"/>
+            <path d="M20 8v16m0-16l-5 5m5-5l5 5" stroke="var(--color-text-secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 28c0 2.2 1.8 4 4 4h16c2.2 0 4-1.8 4-4" stroke="var(--color-text-secondary)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div class="drop-title">Drop images here</div>
+          <div class="drop-sub">Click to browse. Then crop per image if you want.</div>
+          <div class="drop-actions">
+            <button class="btn btn-primary" type="button" id="browse-primary">Browse files</button>
+            <button class="btn btn-ghost" type="button" id="paste-btn" title="Paste an image from clipboard">Paste</button>
+          </div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*">
+
+        <div id="controls" style="display:none" aria-label="Conversion controls">
+          <span class="ctrl-label">Quality</span>
+          <div id="quality-wrap">
+            <input type="range" id="quality" min="10" max="100" value="85" step="1">
+            <span id="quality-val">85%</span>
+          </div>
+          <div class="divider"></div>
+          <span class="ctrl-label">Resize width</span>
+          <div id="width-wrap">
+            <input type="number" id="width-input" placeholder="original" min="1" max="16000">
+            <span class="unit">px</span>
+          </div>
+          <button class="btn btn-primary" id="convert-all" disabled type="button">Convert all</button>
+          <div class="progress" id="progress-wrap" style="display:none">
+            <div class="progressbar" aria-hidden="true"><div id="progress-bar"></div></div>
+            <div class="progress-text" id="progress-text">0/0</div>
+          </div>
+        </div>
+
+        <div id="queue"></div>
+        <div id="dl-all-wrap" style="display:none">
+          <button id="dl-all" type="button">Download all as ZIP</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="crop-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card" role="document">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Crop</div>
+          <div class="modal-sub" id="crop-filename">—</div>
+        </div>
+        <button class="btn btn-ghost" id="crop-close" type="button">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="crop-stage">
+          <img id="crop-image" alt="Crop preview" />
+        </div>
+        <div class="side">
+          <div>
+            <h4>Aspect</h4>
+            <div class="seg" id="aspect-seg">
+              <button type="button" data-aspect="free" class="active">Free</button>
+              <button type="button" data-aspect="1">1:1</button>
+              <button type="button" data-aspect="4/3">4:3</button>
+              <button type="button" data-aspect="16/9">16:9</button>
+            </div>
+          </div>
+          <div>
+            <h4>Crop box</h4>
+            <div class="kv" id="crop-stats">—</div>
+          </div>
+          <div class="kv">
+            Tip: double‑click the image to toggle “move” mode in Cropper.
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="crop-reset" type="button">Reset</button>
+        <button class="btn btn-danger" id="crop-clear" type="button">Remove crop</button>
+        <button class="btn btn-primary" id="crop-save" type="button">Save crop</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+  <script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const queue = document.getElementById('queue');
+  const controls = document.getElementById('controls');
+  const qualitySlider = document.getElementById('quality');
+  const qualityVal = document.getElementById('quality-val');
+  const widthInput = document.getElementById('width-input');
+  const convertAllBtn = document.getElementById('convert-all');
+  const dlAllWrap = document.getElementById('dl-all-wrap');
+  const dlAll = document.getElementById('dl-all');
+  const summaryPill = document.getElementById('summary-pill');
+  const summaryCount = document.getElementById('summary-count');
+  const summaryDone = document.getElementById('summary-done');
+  const topActions = document.getElementById('top-actions');
+  const browseBtn = document.getElementById('browse-btn');
+  const browsePrimary = document.getElementById('browse-primary');
+  const clearBtn = document.getElementById('clear-btn');
+  const pasteBtn = document.getElementById('paste-btn');
+  const progressWrap = document.getElementById('progress-wrap');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const toast = document.getElementById('toast');
+
+  const cropModal = document.getElementById('crop-modal');
+  const cropImage = document.getElementById('crop-image');
+  const cropFilename = document.getElementById('crop-filename');
+  const cropClose = document.getElementById('crop-close');
+  const cropReset = document.getElementById('crop-reset');
+  const cropClear = document.getElementById('crop-clear');
+  const cropSave = document.getElementById('crop-save');
+  const cropStats = document.getElementById('crop-stats');
+  const aspectSeg = document.getElementById('aspect-seg');
+
+  let items = [];
+  let toastTimer = null;
+  let cropper = null;
+  let activeCropId = null;
+  let activeCropBlobUrl = null;
+
+  qualitySlider.addEventListener('input', () => {
+    qualityVal.textContent = qualitySlider.value + '%';
+    // Master quality is the base quality; per-image overrides remain unchanged.
+    // Re-render so items without overrides display the updated base.
+    items.forEach(renderItem);
+  });
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag'); addFiles([...e.dataTransfer.files]); });
+  fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  browseBtn?.addEventListener('click', () => fileInput.click());
+  browsePrimary?.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+
+  clearBtn?.addEventListener('click', () => {
+    closeCropModal();
+    items = [];
+    queue.innerHTML = '';
+    controls.style.display = 'none';
+    dlAllWrap.style.display = 'none';
+    topActions.style.display = 'none';
+    summaryPill.style.display = 'none';
+    progressWrap.style.display = 'none';
+    updateProgress();
+    showToast('Cleared queue.');
+  });
+
+  pasteBtn?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try{
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        showToast('Paste is not supported in this browser.');
+        return;
+      }
+      const itemsClipboard = await navigator.clipboard.read();
+      const files = [];
+      for (const it of itemsClipboard) {
+        const type = it.types.find(t => t.startsWith('image/'));
+        if (!type) continue;
+        const blob = await it.getType(type);
+        files.push(new File([blob], `pasted-${Date.now()}.${type.split('/')[1] || 'png'}`, { type }));
+      }
+      if (!files.length) showToast('No image found in clipboard.');
+      addFiles(files);
+    } catch {
+      showToast('Could not read from clipboard.');
+    }
+  });
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    return (b/1024/1024).toFixed(2) + ' MB';
+  }
+
+  function addFiles(files) {
+    files = files.filter(f => f.type.startsWith('image/'));
+    if (!files.length) { showToast('No images detected.'); return; }
+    files.forEach(file => {
+      const id = Date.now() + Math.random();
+      const item = { id, file, webpBlob: null, status: 'waiting', origW: null, origH: null, crop: null, qualityOverride: null };
+      items.push(item);
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => { item.origW = img.naturalWidth; item.origH = img.naturalHeight; URL.revokeObjectURL(url); renderItem(item); updateProgress(); };
+      img.src = url;
+      renderItem(item);
+    });
+    controls.style.display = 'flex';
+    convertAllBtn.disabled = false;
+    dlAllWrap.style.display = 'none';
+    topActions.style.display = 'flex';
+    summaryPill.style.display = 'inline-flex';
+    progressWrap.style.display = 'flex';
+    updateProgress();
+    showToast(`Added ${files.length} image${files.length === 1 ? '' : 's'}.`);
+  }
+
+  function getOutputDims(baseW, baseH) {
+    const targetW = parseInt(widthInput.value);
+    if (!targetW || targetW >= baseW) return { w: baseW, h: baseH };
+    const ratio = baseH / baseW;
+    return { w: targetW, h: Math.round(targetW * ratio) };
+  }
+
+  function updateProgress(){
+    const total = items.length;
+    const done = items.filter(i => i.status === 'done').length;
+    const converting = items.filter(i => i.status === 'converting').length;
+    const waiting = items.filter(i => i.status === 'waiting').length;
+    summaryCount.textContent = String(total);
+    summaryDone.textContent = String(done);
+    if (!total) {
+      progressBar.style.width = '0%';
+      progressText.textContent = '0/0';
+      return;
+    }
+    const pct = Math.round((done / total) * 100);
+    progressBar.style.width = pct + '%';
+    const suffix = converting ? ' (converting)' : (waiting ? '' : ' (ready)');
+    progressText.textContent = `${done}/${total}${suffix}`;
+  }
+
+  function removeItem(id){
+    if (activeCropId == id) closeCropModal();
+    const idx = items.findIndex(i => i.id == id);
+    if (idx === -1) return;
+    items.splice(idx, 1);
+    const row = document.getElementById('item-' + id);
+    if (row) row.remove();
+    updateProgress();
+    if (!items.length) {
+      controls.style.display = 'none';
+      dlAllWrap.style.display = 'none';
+      topActions.style.display = 'none';
+      summaryPill.style.display = 'none';
+      progressWrap.style.display = 'none';
+    }
+  }
+
+  function cropLabel(item){
+    if (!item.crop) return '';
+    const w = Math.round(item.crop.width);
+    const h = Math.round(item.crop.height);
+    return `<span class="badge badge-crop" title="Crop enabled">${w}×${h}</span>`;
+  }
+
+  function qualityBadge(item){
+    const q = (item.qualityOverride == null) ? parseInt(qualitySlider.value) : parseInt(item.qualityOverride);
+    const isOverride = item.qualityOverride != null;
+    const cls = isOverride ? 'badge-q-override' : 'badge-q';
+    const label = isOverride ? 'Override' : 'Base';
+    return `<span class="badge ${cls}" id="qb-${item.id}" title="Quality">${label} ${q}%</span>`;
+  }
+
+  function qualityControlHtml(item){
+    const q = (item.qualityOverride == null) ? parseInt(qualitySlider.value) : parseInt(item.qualityOverride);
+    const isBase = item.qualityOverride == null;
+    const modeText = isBase ? 'Base' : 'Override';
+    const modeClass = isBase ? '' : 'override';
+    return `<div class="item-quality">
+      <label for="q-${item.id}">Quality</label>
+      <span class="qmode ${modeClass}" id="qm-${item.id}" title="If you adjust this slider, it becomes an override.">${modeText}</span>
+      <input type="range" id="q-${item.id}" class="item-quality-slider" data-id="${item.id}" min="10" max="100" step="1" value="${q}" aria-label="Quality for ${item.file.name}">
+      <span class="qval" id="qv-${item.id}">${q}%</span>
+      ${isBase ? '' : `<button class="qreset item-quality-reset" data-id="${item.id}" type="button" title="Remove override and use base quality">Use base</button>`}
+    </div>`;
+  }
+
+  function renderItem(item) {
+    let row = document.getElementById('item-' + item.id);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'item';
+      row.id = 'item-' + item.id;
+      queue.appendChild(row);
+    }
+    const name = item.file.name.replace(/\\.[^.]+$/, '') + '.webp';
+    const origSize = fmtSize(item.file.size);
+    let sizeInfo = origSize;
+    if (item.origW) sizeInfo += ` · ${item.origW}×${item.origH}`;
+    if (item.crop) sizeInfo += ` · crop ${Math.round(item.crop.width)}×${Math.round(item.crop.height)}`;
+    if (item.webpBlob) {
+      const saving = Math.round((1 - item.webpBlob.size / item.file.size) * 100);
+      sizeInfo = origSize + ' → ' + fmtSize(item.webpBlob.size);
+      if (item.outW && item.outW !== item.origW) sizeInfo += ` · ${item.outW}×${item.outH}`;
+      if (saving > 0) sizeInfo += ` <span class="size-save">(-${saving}%)</span>`;
+    }
+
+    let thumbHtml = '';
+    if (item.objectURL) {
+      thumbHtml = `<img class="thumb" src="${item.objectURL}" alt="">`;
+    } else {
+      const ext = (item.file.name.split('.').pop() || 'img').toUpperCase().slice(0,4);
+      thumbHtml = `<div class="thumb-ph">${ext}</div>`;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const el = row.querySelector('img,div.thumb-ph');
+        if (el) { const img = document.createElement('img'); img.className='thumb'; img.src=e.target.result; el.replaceWith(img); }
+        item.objectURL = e.target.result;
+      };
+      reader.readAsDataURL(item.file);
+    }
+
+    let actionHtml = '';
+    if (item.status === 'done' && item.webpBlob) {
+      actionHtml = `<div class="item-actions">
+        <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+          ${cropLabel(item)}
+          ${qualityBadge(item)}
+          <span class="badge badge-done">done</span>
+        </div>
+        ${qualityControlHtml(item)}
+        <div class="item-actions-row">
+          <button class="icon-btn" onclick="openCrop('${item.id}')" type="button">Crop</button>
+          <button class="icon-btn" onclick="downloadItem('${item.id}')" type="button">Download</button>
+          <button class="icon-btn icon-btn-danger" onclick="removeItem('${item.id}')" type="button" title="Remove">Remove</button>
+        </div>
+      </div>`;
+    } else if (item.status === 'waiting') {
+      actionHtml = `<div class="item-actions">
+        <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+          ${cropLabel(item)}
+          ${qualityBadge(item)}
+          <span class="badge badge-wait">waiting</span>
+        </div>
+        ${qualityControlHtml(item)}
+        <div class="item-actions-row">
+          <button class="icon-btn" onclick="openCrop('${item.id}')" type="button">Crop</button>
+          <button class="icon-btn" onclick="convertOne('${item.id}')" type="button">Convert</button>
+          <button class="icon-btn icon-btn-danger" onclick="removeItem('${item.id}')" type="button" title="Remove">Remove</button>
+        </div>
+      </div>`;
+    } else if (item.status === 'converting') {
+      actionHtml = `<div class="item-actions">
+        <span class="badge badge-wait">converting...</span>
+        <div class="item-actions-row">
+          <button class="icon-btn icon-btn-danger" onclick="removeItem('${item.id}')" type="button" title="Remove">Remove</button>
+        </div>
+      </div>`;
+    } else if (item.status === 'error') {
+      actionHtml = `<div class="item-actions">
+        <span class="badge badge-err">error</span>
+        ${qualityControlHtml(item)}
+        <div class="item-actions-row">
+          <button class="icon-btn" onclick="openCrop('${item.id}')" type="button">Crop</button>
+          <button class="icon-btn" onclick="convertOne('${item.id}')" type="button">Retry</button>
+          <button class="icon-btn icon-btn-danger" onclick="removeItem('${item.id}')" type="button" title="Remove">Remove</button>
+        </div>
+      </div>`;
+    }
+
+    row.innerHTML = `${thumbHtml}
+      <div><div class="item-name" title="${name}">${name}</div><div class="item-meta">${sizeInfo}</div></div>
+      ${actionHtml}`;
+  }
+
+  function convertItem(item, quality) {
+    return new Promise(resolve => {
+      item.status = 'converting';
+      renderItem(item);
+      updateProgress();
+      const img = new Image();
+      const url = URL.createObjectURL(item.file);
+      img.onload = () => {
+        const crop = item.crop;
+        const sx = crop ? crop.x : 0;
+        const sy = crop ? crop.y : 0;
+        const sw = crop ? crop.width : img.naturalWidth;
+        const sh = crop ? crop.height : img.naturalHeight;
+
+        const { w, h } = getOutputDims(sw, sh);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob(blob => {
+          if (blob) { item.webpBlob = blob; item.outW = w; item.outH = h; item.status = 'done'; }
+          else { item.status = 'error'; }
+          renderItem(item);
+          updateProgress();
+          resolve();
+        }, 'image/webp', quality / 100);
+      };
+      img.onerror = () => { item.status = 'error'; renderItem(item); updateProgress(); resolve(); };
+      img.src = url;
+    });
+  }
+
+  async function convertOne(id){
+    const item = items.find(i => i.id == id);
+    if (!item) return;
+    const baseQ = parseInt(qualitySlider.value);
+    const quality = (item.qualityOverride == null) ? baseQ : parseInt(item.qualityOverride);
+    await convertItem(item, quality);
+    const allDone = items.length && items.every(i => i.status === 'done');
+    if (allDone && items.length > 1) dlAllWrap.style.display = 'flex';
+  }
+
+  convertAllBtn.addEventListener('click', async () => {
+    convertAllBtn.disabled = true;
+    const baseQ = parseInt(qualitySlider.value);
+    const pending = items.filter(i => i.status === 'waiting' || i.status === 'error');
+    if (!pending.length) { showToast('Nothing to convert.'); convertAllBtn.disabled = false; return; }
+    for (const item of pending) {
+      const quality = (item.qualityOverride == null) ? baseQ : parseInt(item.qualityOverride);
+      await convertItem(item, quality);
+    }
+    const allDone = items.every(i => i.status === 'done');
+    if (allDone && items.length > 1) dlAllWrap.style.display = 'flex';
+    convertAllBtn.disabled = items.some(i => i.status === 'waiting');
+    if (allDone) showToast('Conversion complete.');
+  });
+
+  // Per-item quality overrides (event delegation)
+  // IMPORTANT: do not rerender on `input` (dragging), or the DOM is replaced mid-drag.
+  queue.addEventListener('input', (e) => {
+    const slider = e.target.closest?.('.item-quality-slider');
+    if (!slider) return;
+    const id = slider.dataset.id;
+    const item = items.find(i => i.id == id);
+    if (!item) return;
+    const q = parseInt(slider.value);
+    item.qualityOverride = q;
+    const valEl = document.getElementById('qv-' + id);
+    if (valEl) valEl.textContent = q + '%';
+    const modeEl = document.getElementById('qm-' + id);
+    if (modeEl) { modeEl.textContent = 'Override'; modeEl.classList.add('override'); }
+    const badgeEl = document.getElementById('qb-' + id);
+    if (badgeEl) { badgeEl.textContent = `Override ${q}%`; badgeEl.classList.add('badge-q-override'); badgeEl.classList.remove('badge-q'); }
+  });
+
+  queue.addEventListener('change', (e) => {
+    const slider = e.target.closest?.('.item-quality-slider');
+    if (!slider) return;
+    const id = slider.dataset.id;
+    const item = items.find(i => i.id == id);
+    if (!item) return;
+    // Invalidate any previous conversion only when user finishes dragging.
+    item.webpBlob = null;
+    item.status = 'waiting';
+    renderItem(item);
+    updateProgress();
+  });
+
+  queue.addEventListener('click', (e) => {
+    const btn = e.target.closest?.('.item-quality-reset');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const item = items.find(i => i.id == id);
+    if (!item) return;
+    item.qualityOverride = null;
+    item.webpBlob = null;
+    item.status = 'waiting';
+    renderItem(item);
+    updateProgress();
+  });
+
+  function downloadItem(id) {
+    const item = items.find(i => i.id == id);
+    if (!item || !item.webpBlob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(item.webpBlob);
+    a.download = item.file.name.replace(/\\.[^.]+$/, '') + '.webp';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
+  dlAll.addEventListener('click', async () => {
+    const done = items.filter(i => i.status === 'done' && i.webpBlob);
+    if (!done.length) return;
+    dlAll.disabled = true;
+    dlAll.textContent = 'Zipping...';
+    const zip = new JSZip();
+    for (const item of done) zip.file(item.file.name.replace(/\\.[^.]+$/, '') + '.webp', item.webpBlob);
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'converted-webp.zip';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    dlAll.textContent = 'Download all as ZIP';
+    dlAll.disabled = false;
+    showToast('ZIP ready.');
+  });
+
+  // Cropping
+  window.openCrop = function(id){
+    const item = items.find(i => i.id == id);
+    if (!item) return;
+    activeCropId = id;
+    cropFilename.textContent = item.file.name;
+    cropModal.classList.add('show');
+    cropModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    if (activeCropBlobUrl) URL.revokeObjectURL(activeCropBlobUrl);
+    activeCropBlobUrl = URL.createObjectURL(item.file);
+    cropImage.src = activeCropBlobUrl;
+
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropper = new Cropper(cropImage, {
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.9,
+      responsive: true,
+      background: false,
+      ready(){
+        if (item.crop) cropper.setData(item.crop);
+        updateCropStats();
+      },
+      crop(){
+        updateCropStats();
+      }
+    });
+
+    setAspectActive('free');
+  }
+
+  function setAspectActive(val){
+    [...aspectSeg.querySelectorAll('button')].forEach(b => b.classList.toggle('active', b.dataset.aspect === val));
+  }
+
+  aspectSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-aspect]');
+    if (!btn || !cropper) return;
+    const v = btn.dataset.aspect;
+    setAspectActive(v);
+    if (v === 'free') cropper.setAspectRatio(NaN);
+    else cropper.setAspectRatio(eval(v));
+  });
+
+  function updateCropStats(){
+    if (!cropper) { cropStats.textContent = '—'; return; }
+    const d = cropper.getData(true);
+    cropStats.textContent = `x ${Math.round(d.x)} · y ${Math.round(d.y)} · w ${Math.round(d.width)} · h ${Math.round(d.height)}`;
+  }
+
+  function closeCropModal(){
+    cropModal.classList.remove('show');
+    cropModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (cropper) { cropper.destroy(); cropper = null; }
+    if (activeCropBlobUrl) { URL.revokeObjectURL(activeCropBlobUrl); activeCropBlobUrl = null; }
+    activeCropId = null;
+  }
+
+  cropClose.addEventListener('click', closeCropModal);
+  cropModal.addEventListener('click', (e) => { if (e.target === cropModal) closeCropModal(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && cropModal.classList.contains('show')) closeCropModal(); });
+
+  cropReset.addEventListener('click', () => { if (cropper) cropper.reset(); });
+  cropClear.addEventListener('click', () => {
+    const item = items.find(i => i.id == activeCropId);
+    if (!item) return;
+    item.crop = null;
+    // invalidate any previous conversion so user doesn't forget they changed it
+    item.webpBlob = null;
+    item.status = 'waiting';
+    renderItem(item);
+    updateProgress();
+    showToast('Crop removed.');
+    closeCropModal();
+  });
+  cropSave.addEventListener('click', () => {
+    const item = items.find(i => i.id == activeCropId);
+    if (!item || !cropper) return;
+    const d = cropper.getData(true);
+    item.crop = { x: d.x, y: d.y, width: d.width, height: d.height, rotate: 0, scaleX: 1, scaleY: 1 };
+    item.webpBlob = null;
+    item.status = 'waiting';
+    renderItem(item);
+    updateProgress();
+    showToast('Crop saved.');
+    closeCropModal();
+  });
+
+  updateProgress();
+  </script>
+</body>
+</html>
+
