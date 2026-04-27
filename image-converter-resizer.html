@@ -378,6 +378,14 @@
         <input type="file" id="file-input" multiple accept="image/*">
 
         <div id="controls" style="display:none" aria-label="Conversion controls">
+          <span class="ctrl-label">Output</span>
+          <div id="format-wrap" style="display:flex;align-items:center;gap:8px">
+            <select id="format-select" style="font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:10px;background:var(--color-background-primary);color:var(--color-text-primary)">
+              <option value="webp">WebP</option>
+              <option value="original">Keep original</option>
+            </select>
+          </div>
+          <div class="divider"></div>
           <span class="ctrl-label">Quality</span>
           <div id="quality-wrap">
             <input type="range" id="quality" min="10" max="100" value="85" step="1">
@@ -389,7 +397,7 @@
             <input type="number" id="width-input" placeholder="original" min="1" max="16000">
             <span class="unit">px</span>
           </div>
-          <button class="btn btn-primary" id="convert-all" disabled type="button">Convert all</button>
+          <button class="btn btn-primary" id="convert-all" disabled type="button">Process all</button>
           <div class="progress" id="progress-wrap" style="display:none">
             <div class="progressbar" aria-hidden="true"><div id="progress-bar"></div></div>
             <div class="progress-text" id="progress-text">0/0</div>
@@ -458,6 +466,7 @@
   const qualityVal = document.getElementById('quality-val');
   const widthInput = document.getElementById('width-input');
   const convertAllBtn = document.getElementById('convert-all');
+  const formatSelect = document.getElementById('format-select');
   const dlAllWrap = document.getElementById('dl-all-wrap');
   const dlAll = document.getElementById('dl-all');
   const summaryPill = document.getElementById('summary-pill');
@@ -496,6 +505,22 @@
     // Master quality is the base quality; per-image overrides remain unchanged.
     // Re-render so items without overrides display the updated base.
     items.forEach(renderItem);
+  });
+
+  formatSelect?.addEventListener('change', () => {
+    // Changing the output format invalidates all completed outputs.
+    items.forEach(item => {
+      if (item.status === 'done') {
+        item.outBlob = null;
+        item.outMime = null;
+        item.outExt = null;
+        item.status = 'waiting';
+        renderItem(item);
+      }
+    });
+    dlAllWrap.style.display = 'none';
+    convertAllBtn.disabled = !items.length;
+    updateProgress();
   });
 
   dropzone.addEventListener('click', () => fileInput.click());
@@ -567,7 +592,7 @@
     if (!files.length) { showToast('No images detected.'); return; }
     files.forEach(file => {
       const id = Date.now() + Math.random();
-      const item = { id, file, webpBlob: null, status: 'waiting', origW: null, origH: null, crop: null, qualityOverride: null };
+      const item = { id, file, outBlob: null, outMime: null, outExt: null, status: 'waiting', origW: null, origH: null, crop: null, qualityOverride: null };
       items.push(item);
       const img = new Image();
       const url = URL.createObjectURL(file);
@@ -583,6 +608,31 @@
     progressWrap.style.display = 'flex';
     updateProgress();
     showToast(`Added ${files.length} image${files.length === 1 ? '' : 's'}.`);
+  }
+
+  function extFromMime(mime){
+    if (!mime) return 'png';
+    if (mime === 'image/jpeg') return 'jpg';
+    if (mime === 'image/png') return 'png';
+    if (mime === 'image/webp') return 'webp';
+    if (mime === 'image/gif') return 'gif';
+    if (mime === 'image/bmp') return 'bmp';
+    if (mime === 'image/tiff') return 'tif';
+    if (mime === 'image/avif') return 'avif';
+    return (mime.split('/')[1] || 'png');
+  }
+
+  function chooseOutputForItem(item){
+    const mode = formatSelect?.value || 'webp';
+    if (mode === 'webp') return { mime: 'image/webp', ext: 'webp', qualityApplies: true };
+
+    // "Keep original" is best-effort. Canvas cannot encode many input formats,
+    // so we only preserve PNG/JPEG/WebP; otherwise we fall back to PNG.
+    const original = item.file.type;
+    if (original === 'image/png') return { mime: 'image/png', ext: 'png', qualityApplies: false };
+    if (original === 'image/jpeg') return { mime: 'image/jpeg', ext: 'jpg', qualityApplies: true };
+    if (original === 'image/webp') return { mime: 'image/webp', ext: 'webp', qualityApplies: true };
+    return { mime: 'image/png', ext: 'png', qualityApplies: false, note: 'Original format not supported for export; saved as PNG.' };
   }
 
   function getOutputDims(baseW, baseH) {
@@ -664,14 +714,16 @@
       row.id = 'item-' + item.id;
       queue.appendChild(row);
     }
-    const name = item.file.name.replace(/\\.[^.]+$/, '') + '.webp';
+    const base = item.file.name.replace(/\\.[^.]+$/, '');
+    const outExt = item.outExt || (formatSelect?.value === 'original' ? extFromMime(item.file.type) : 'webp');
+    const name = base + '.' + outExt;
     const origSize = fmtSize(item.file.size);
     let sizeInfo = origSize;
     if (item.origW) sizeInfo += ` · ${item.origW}×${item.origH}`;
     if (item.crop) sizeInfo += ` · crop ${Math.round(item.crop.width)}×${Math.round(item.crop.height)}`;
-    if (item.webpBlob) {
-      const saving = Math.round((1 - item.webpBlob.size / item.file.size) * 100);
-      sizeInfo = origSize + ' → ' + fmtSize(item.webpBlob.size);
+    if (item.outBlob) {
+      const saving = Math.round((1 - item.outBlob.size / item.file.size) * 100);
+      sizeInfo = origSize + ' → ' + fmtSize(item.outBlob.size);
       if (item.outW && item.outW !== item.origW) sizeInfo += ` · ${item.outW}×${item.outH}`;
       if (saving > 0) sizeInfo += ` <span class="size-save">(-${saving}%)</span>`;
     }
@@ -692,7 +744,7 @@
     }
 
     let actionHtml = '';
-    if (item.status === 'done' && item.webpBlob) {
+    if (item.status === 'done' && item.outBlob) {
       actionHtml = `<div class="item-actions">
         <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
           ${cropLabel(item)}
@@ -716,7 +768,7 @@
         ${qualityControlHtml(item)}
         <div class="item-actions-row">
           <button class="icon-btn" onclick="openCrop('${item.id}')" type="button">Crop</button>
-          <button class="icon-btn" onclick="convertOne('${item.id}')" type="button">Convert</button>
+          <button class="icon-btn" onclick="convertOne('${item.id}')" type="button">Process</button>
           <button class="icon-btn icon-btn-danger" onclick="removeItem('${item.id}')" type="button" title="Remove">Remove</button>
         </div>
       </div>`;
@@ -766,13 +818,22 @@
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
         URL.revokeObjectURL(url);
 
+        const out = chooseOutputForItem(item);
         canvas.toBlob(blob => {
-          if (blob) { item.webpBlob = blob; item.outW = w; item.outH = h; item.status = 'done'; }
+          if (blob) {
+            item.outBlob = blob;
+            item.outMime = out.mime;
+            item.outExt = out.ext;
+            item.outW = w;
+            item.outH = h;
+            item.status = 'done';
+            if (out.note) showToast(out.note);
+          }
           else { item.status = 'error'; }
           renderItem(item);
           updateProgress();
           resolve();
-        }, 'image/webp', quality / 100);
+        }, out.mime, out.qualityApplies ? (quality / 100) : undefined);
       };
       img.onerror = () => { item.status = 'error'; renderItem(item); updateProgress(); resolve(); };
       img.src = url;
@@ -829,7 +890,9 @@
     const item = items.find(i => i.id == id);
     if (!item) return;
     // Invalidate any previous conversion only when user finishes dragging.
-    item.webpBlob = null;
+    item.outBlob = null;
+    item.outMime = null;
+    item.outExt = null;
     item.status = 'waiting';
     renderItem(item);
     updateProgress();
@@ -842,7 +905,9 @@
     const item = items.find(i => i.id == id);
     if (!item) return;
     item.qualityOverride = null;
-    item.webpBlob = null;
+    item.outBlob = null;
+    item.outMime = null;
+    item.outExt = null;
     item.status = 'waiting';
     renderItem(item);
     updateProgress();
@@ -850,25 +915,29 @@
 
   function downloadItem(id) {
     const item = items.find(i => i.id == id);
-    if (!item || !item.webpBlob) return;
+    if (!item || !item.outBlob) return;
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(item.webpBlob);
-    a.download = item.file.name.replace(/\\.[^.]+$/, '') + '.webp';
+    a.href = URL.createObjectURL(item.outBlob);
+    const ext = item.outExt || (formatSelect?.value === 'original' ? extFromMime(item.file.type) : 'webp');
+    a.download = item.file.name.replace(/\\.[^.]+$/, '') + '.' + ext;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
 
   dlAll.addEventListener('click', async () => {
-    const done = items.filter(i => i.status === 'done' && i.webpBlob);
+    const done = items.filter(i => i.status === 'done' && i.outBlob);
     if (!done.length) return;
     dlAll.disabled = true;
     dlAll.textContent = 'Zipping...';
     const zip = new JSZip();
-    for (const item of done) zip.file(item.file.name.replace(/\\.[^.]+$/, '') + '.webp', item.webpBlob);
+    for (const item of done) {
+      const ext = item.outExt || (formatSelect?.value === 'original' ? extFromMime(item.file.type) : 'webp');
+      zip.file(item.file.name.replace(/\\.[^.]+$/, '') + '.' + ext, item.outBlob);
+    }
     const blob = await zip.generateAsync({ type: 'blob' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'converted-webp.zip';
+    a.download = (formatSelect?.value === 'original') ? 'resized-images.zip' : 'converted-webp.zip';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     dlAll.textContent = 'Download all as ZIP';
@@ -985,7 +1054,9 @@
     if (!item) return;
     item.crop = null;
     // invalidate any previous conversion so user doesn't forget they changed it
-    item.webpBlob = null;
+    item.outBlob = null;
+    item.outMime = null;
+    item.outExt = null;
     item.status = 'waiting';
     renderItem(item);
     updateProgress();
@@ -997,7 +1068,9 @@
     if (!item || !cropper) return;
     const d = cropper.getData(true);
     item.crop = { x: d.x, y: d.y, width: d.width, height: d.height, rotate: 0, scaleX: 1, scaleY: 1 };
-    item.webpBlob = null;
+    item.outBlob = null;
+    item.outMime = null;
+    item.outExt = null;
     item.status = 'waiting';
     renderItem(item);
     updateProgress();
