@@ -424,6 +424,7 @@
             <h4>Aspect</h4>
             <div class="seg" id="aspect-seg">
               <button type="button" data-aspect="free" class="active">Free</button>
+              <button type="button" data-aspect="custom" id="aspect-custom" title="Lock the current freeform ratio so resizing keeps that aspect ratio">Lock current</button>
               <button type="button" data-aspect="1">1:1</button>
               <button type="button" data-aspect="4/3">4:3</button>
               <button type="button" data-aspect="16/9">16:9</button>
@@ -481,12 +482,14 @@
   const cropSave = document.getElementById('crop-save');
   const cropStats = document.getElementById('crop-stats');
   const aspectSeg = document.getElementById('aspect-seg');
+  const aspectCustomBtn = document.getElementById('aspect-custom');
 
   let items = [];
   let toastTimer = null;
   let cropper = null;
   let activeCropId = null;
   let activeCropBlobUrl = null;
+  let customAspectRatio = null;
 
   qualitySlider.addEventListener('input', () => {
     qualityVal.textContent = qualitySlider.value + '%';
@@ -903,6 +906,9 @@
       }
     });
 
+    // Each crop session starts in Free; user can lock presets or lock current ratio.
+    customAspectRatio = null;
+    if (aspectCustomBtn) aspectCustomBtn.textContent = 'Lock current';
     setAspectActive('free');
   }
 
@@ -910,13 +916,48 @@
     [...aspectSeg.querySelectorAll('button')].forEach(b => b.classList.toggle('active', b.dataset.aspect === val));
   }
 
+  function gcd(a,b){ while (b) { const t = a % b; a = b; b = t; } return a; }
+
+  // Approximate a floating ratio with small integers for display (e.g. 1.777 -> 16:9).
+  function approxRatio(r, maxDen = 48){
+    if (!isFinite(r) || r <= 0) return null;
+    let bestNum = 1, bestDen = 1, bestErr = Math.abs(r - 1);
+    for (let den = 1; den <= maxDen; den++){
+      const num = Math.round(r * den);
+      const err = Math.abs(r - (num / den));
+      if (err < bestErr){
+        bestErr = err; bestNum = num; bestDen = den;
+        if (bestErr < 1e-4) break;
+      }
+    }
+    const g = gcd(bestNum, bestDen);
+    return { num: Math.max(1, Math.round(bestNum / g)), den: Math.max(1, Math.round(bestDen / g)), err: bestErr };
+  }
+
   aspectSeg.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-aspect]');
     if (!btn || !cropper) return;
     const v = btn.dataset.aspect;
     setAspectActive(v);
-    if (v === 'free') cropper.setAspectRatio(NaN);
-    else cropper.setAspectRatio(eval(v));
+    if (v === 'free') {
+      cropper.setAspectRatio(NaN);
+      return;
+    }
+    if (v === 'custom') {
+      // Capture current crop box ratio (from freeform) and lock it.
+      const d = cropper.getData(true);
+      const r = (d && d.height) ? (d.width / d.height) : null;
+      if (!r) return;
+      customAspectRatio = r;
+      cropper.setAspectRatio(customAspectRatio);
+      const approx = approxRatio(customAspectRatio);
+      if (aspectCustomBtn) {
+        aspectCustomBtn.textContent = approx ? `Locked ${approx.num}:${approx.den}` : `Locked`;
+        aspectCustomBtn.title = approx ? `Locked aspect ratio ${approx.num}:${approx.den}. Resize handles will keep this ratio.` : 'Locked current aspect ratio.';
+      }
+      return;
+    }
+    cropper.setAspectRatio(eval(v));
   });
 
   function updateCropStats(){
