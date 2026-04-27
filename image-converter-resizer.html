@@ -131,17 +131,20 @@
     #file-input{display:none}
 
     #controls{
-      display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap;
-      padding:10px 12px;border-radius:var(--border-radius-md);
+      display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;
+      padding:9px 10px;border-radius:var(--border-radius-md);
       background:var(--color-background-secondary);
       border:0.5px solid var(--color-border-tertiary);
     }
+    .controls-row{
+      display:contents;
+    }
     .ctrl-label{font-size:12px;color:var(--color-text-secondary);font-family:'DM Mono',monospace;white-space:nowrap}
-    #quality-wrap{display:flex;align-items:center;gap:10px}
-    #quality{width:160px}
+    #quality-wrap{display:flex;align-items:center;gap:8px}
+    #quality{width:120px}
     #quality-val{font-size:12px;font-family:'DM Mono',monospace;min-width:42px;text-align:right}
     .divider{width:0.5px;height:20px;background:var(--color-border-tertiary)}
-    #width-wrap{display:flex;align-items:center;gap:8px}
+    #width-wrap{display:flex;align-items:center;gap:6px}
     #width-input{
       width:108px;font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;
       border:0.5px solid var(--color-border-secondary);border-radius:10px;
@@ -153,11 +156,11 @@
 
     .progress{
       margin-left:auto;
-      display:flex;align-items:center;gap:10px;min-width:220px;flex:1;
+      display:flex;align-items:center;gap:8px;min-width:150px;flex:0;
       justify-content:flex-end;
     }
     .progressbar{
-      height:10px;flex:1;min-width:140px;max-width:320px;border-radius:999px;
+      height:10px;flex:1;min-width:90px;max-width:180px;border-radius:999px;
       background:rgba(0,0,0,0.10);overflow:hidden;border:0.5px solid var(--color-border-tertiary);
     }
     @media (prefers-color-scheme: dark){
@@ -283,6 +286,33 @@
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
 
+    /* Overlay popover */
+    .popover{
+      position:relative;
+      display:inline-flex;
+    }
+    .popover-panel{
+      position:absolute;
+      top:calc(100% + 8px);
+      left:0;
+      min-width:220px;
+      padding:10px;
+      border-radius:12px;
+      background:var(--color-background-primary);
+      border:0.5px solid var(--color-border-tertiary);
+      box-shadow:0 12px 32px var(--color-shadow);
+      z-index:80;
+      display:none;
+    }
+    .popover-panel.show{display:block}
+    .popover-row{
+      display:flex;align-items:center;gap:10px;
+    }
+    .popover-row label{
+      font-size:11px;font-family:'DM Mono',monospace;color:var(--color-text-secondary);white-space:nowrap
+    }
+    #overlay-opacity-pop{width:140px}
+
     /* Crop modal */
     .modal{
       position:fixed;inset:0;display:none;align-items:center;justify-content:center;
@@ -395,36 +425,52 @@
         <input type="file" id="file-input" multiple accept="image/*">
 
         <div id="controls" style="display:none" aria-label="Conversion controls">
-          <span class="ctrl-label">Output</span>
-          <div id="format-wrap" style="display:flex;align-items:center;gap:8px">
-            <select id="format-select" style="font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:10px;background:var(--color-background-primary);color:var(--color-text-primary)">
-              <option value="webp">WebP</option>
-              <option value="original">Keep original</option>
-            </select>
-          </div>
-          <div class="divider"></div>
-          <span class="ctrl-label">Overlay</span>
-          <div id="overlay-wrap" style="display:flex;align-items:center;gap:10px">
-            <input type="color" id="overlay-color" value="#000000" aria-label="Overlay color" style="width:34px;height:28px;border:none;background:transparent;padding:0;cursor:pointer">
-            <input type="range" id="overlay-opacity" min="0" max="100" value="0" step="1" aria-label="Overlay opacity" style="width:120px">
-            <span id="overlay-opacity-val" style="font-size:12px;font-family:'DM Mono',monospace;min-width:46px;text-align:right;color:var(--color-text-secondary)">0%</span>
-          </div>
-          <div class="divider"></div>
-          <span class="ctrl-label">Quality</span>
-          <div id="quality-wrap">
-            <input type="range" id="quality" min="10" max="100" value="85" step="1">
-            <span id="quality-val">85%</span>
-          </div>
-          <div class="divider"></div>
-          <span class="ctrl-label">Resize width</span>
-          <div id="width-wrap">
-            <input type="number" id="width-input" placeholder="original" min="1" max="16000">
-            <span class="unit">px</span>
-          </div>
-          <button class="btn btn-primary" id="convert-all" disabled type="button">Process all</button>
-          <div class="progress" id="progress-wrap" style="display:none">
-            <div class="progressbar" aria-hidden="true"><div id="progress-bar"></div></div>
-            <div class="progress-text" id="progress-text">0/0</div>
+          <div class="controls-row" aria-label="Output, quality, and resize">
+            <span class="ctrl-label">Output</span>
+            <div id="format-wrap" style="display:flex;align-items:center;gap:6px">
+              <select id="format-select" style="font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:10px;background:var(--color-background-primary);color:var(--color-text-primary)">
+                <option value="webp">WebP</option>
+                <option value="original">Keep original</option>
+              </select>
+            </div>
+            <div class="divider"></div>
+            <span class="ctrl-label">Quality</span>
+            <div id="quality-wrap">
+              <input type="range" id="quality" min="10" max="100" value="85" step="1">
+              <span id="quality-val">85%</span>
+            </div>
+            <div class="divider"></div>
+            <span class="ctrl-label">Resize width</span>
+            <div id="width-wrap">
+              <input type="number" id="width-input" placeholder="original" min="1" max="16000">
+              <span class="unit">px</span>
+            </div>
+            <div class="divider"></div>
+            <span class="ctrl-label">Blur</span>
+            <div id="blur-wrap" style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="blur" min="0" max="24" value="0" step="1" aria-label="Blur radius" style="width:90px">
+              <span id="blur-val" style="font-size:12px;font-family:'DM Mono',monospace;min-width:42px;text-align:right;color:var(--color-text-secondary)">0px</span>
+            </div>
+            <div class="divider"></div>
+            <span class="ctrl-label">Overlay</span>
+            <div id="overlay-wrap" style="display:flex;align-items:center;gap:8px">
+              <input type="color" id="overlay-color" value="#000000" aria-label="Overlay color" style="width:34px;height:28px;border:none;background:transparent;padding:0;cursor:pointer">
+              <div class="popover" id="overlay-popover">
+                <button class="icon-btn" id="overlay-popover-btn" type="button" aria-haspopup="dialog" aria-expanded="false">Opacity <span id="overlay-opacity-val">0%</span></button>
+                <div class="popover-panel" id="overlay-popover-panel" role="dialog" aria-label="Overlay opacity">
+                  <div class="popover-row">
+                    <label for="overlay-opacity-pop">Opacity</label>
+                    <input type="range" id="overlay-opacity-pop" min="0" max="100" value="0" step="1" aria-label="Overlay opacity">
+                    <span id="overlay-opacity-val-pop" style="font-size:12px;font-family:'DM Mono',monospace;min-width:46px;text-align:right;color:var(--color-text-secondary)">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="progress" id="progress-wrap" style="display:none">
+              <div class="progressbar" aria-hidden="true"><div id="progress-bar"></div></div>
+              <div class="progress-text" id="progress-text">0/0</div>
+            </div>
+            <button class="btn btn-primary" id="convert-all" disabled type="button">Process all</button>
           </div>
         </div>
 
@@ -492,9 +538,14 @@
   const widthInput = document.getElementById('width-input');
   const convertAllBtn = document.getElementById('convert-all');
   const formatSelect = document.getElementById('format-select');
+  const blurSlider = document.getElementById('blur');
+  const blurVal = document.getElementById('blur-val');
   const overlayColor = document.getElementById('overlay-color');
-  const overlayOpacity = document.getElementById('overlay-opacity');
   const overlayOpacityVal = document.getElementById('overlay-opacity-val');
+  const overlayOpacityPop = document.getElementById('overlay-opacity-pop');
+  const overlayOpacityValPop = document.getElementById('overlay-opacity-val-pop');
+  const overlayPopoverBtn = document.getElementById('overlay-popover-btn');
+  const overlayPopoverPanel = document.getElementById('overlay-popover-panel');
   const dlAllWrap = document.getElementById('dl-all-wrap');
   const dlAll = document.getElementById('dl-all');
   const summaryPill = document.getElementById('summary-pill');
@@ -529,6 +580,23 @@
   let activeCropBlobUrl = null;
   let customAspectRatio = null;
 
+  function autosizeSelectToValue(selectEl, extraPx = 34){
+    if (!selectEl) return;
+    const text = selectEl.selectedOptions?.[0]?.textContent || selectEl.value || '';
+    const cs = getComputedStyle(selectEl);
+    const font = cs.font || `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const canvas = autosizeSelectToValue._canvas || (autosizeSelectToValue._canvas = document.createElement('canvas'));
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+    const textW = ctx.measureText(text).width;
+    const padL = parseFloat(cs.paddingLeft) || 0;
+    const padR = parseFloat(cs.paddingRight) || 0;
+    const borderL = parseFloat(cs.borderLeftWidth) || 0;
+    const borderR = parseFloat(cs.borderRightWidth) || 0;
+    const w = Math.ceil(textW + padL + padR + borderL + borderR + extraPx);
+    selectEl.style.width = w + 'px';
+  }
+
   qualitySlider.addEventListener('input', () => {
     qualityVal.textContent = qualitySlider.value + '%';
     // Master quality is the base quality; per-image overrides remain unchanged.
@@ -553,32 +621,83 @@
 
   formatSelect?.addEventListener('change', () => {
     // Changing the output format invalidates all completed outputs.
+    autosizeSelectToValue(formatSelect);
     invalidateDoneOutputs();
   });
+  autosizeSelectToValue(formatSelect);
 
   function updateOverlayOpacityLabel(){
-    if (!overlayOpacityVal || !overlayOpacity) return;
-    overlayOpacityVal.textContent = overlayOpacity.value + '%';
+    const v = overlayOpacityPop ? overlayOpacityPop.value : '0';
+    if (overlayOpacityVal) overlayOpacityVal.textContent = v + '%';
+    if (overlayOpacityValPop) overlayOpacityValPop.textContent = v + '%';
   }
   updateOverlayOpacityLabel();
 
   function applyOverlayPreviewStyle(){
     const overlay = getOverlaySettings();
     const bg = overlay ? `rgba(${overlay.r}, ${overlay.g}, ${overlay.b}, ${overlay.a})` : 'transparent';
+    const blurPx = getBlurPx();
     // Queue thumbnails
     document.querySelectorAll('.thumb-overlay').forEach(el => {
       el.style.background = bg;
     });
+    document.querySelectorAll('.thumb-wrap img.thumb').forEach(img => {
+      img.style.filter = blurPx ? `blur(${blurPx}px)` : '';
+    });
     // Crop modal overlay
     if (cropOverlay) cropOverlay.style.background = bg;
+    // Cropper renders into its own canvas layer; apply blur there so the preview matches exports.
+    if (cropImage) cropImage.style.filter = blurPx ? `blur(${blurPx}px)` : '';
+    const cropperCanvas = cropModal?.querySelector?.('.cropper-canvas');
+    if (cropperCanvas) cropperCanvas.style.filter = blurPx ? `blur(${blurPx}px)` : '';
   }
   applyOverlayPreviewStyle();
 
-  overlayOpacity?.addEventListener('input', () => {
+  function updateBlurLabel(){
+    if (!blurSlider || !blurVal) return;
+    blurVal.textContent = `${parseInt(blurSlider.value) || 0}px`;
+  }
+
+  function getBlurPx(){
+    if (!blurSlider) return 0;
+    return Math.max(0, parseInt(blurSlider.value) || 0);
+  }
+
+  updateBlurLabel();
+  blurSlider?.addEventListener('input', () => {
+    updateBlurLabel();
+    applyOverlayPreviewStyle();
+  });
+  blurSlider?.addEventListener('change', () => {
+    invalidateDoneOutputs();
+  });
+
+  function closeOverlayPopover(){
+    if (!overlayPopoverPanel || !overlayPopoverBtn) return;
+    overlayPopoverPanel.classList.remove('show');
+    overlayPopoverBtn.setAttribute('aria-expanded', 'false');
+  }
+  function toggleOverlayPopover(){
+    if (!overlayPopoverPanel || !overlayPopoverBtn) return;
+    const open = overlayPopoverPanel.classList.toggle('show');
+    overlayPopoverBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  overlayPopoverBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleOverlayPopover();
+  });
+  overlayPopoverPanel?.addEventListener('click', (e) => e.stopPropagation());
+  window.addEventListener('click', () => closeOverlayPopover());
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeOverlayPopover();
+  });
+
+  overlayOpacityPop?.addEventListener('input', () => {
     updateOverlayOpacityLabel();
     applyOverlayPreviewStyle();
   });
-  overlayOpacity?.addEventListener('change', () => {
+  overlayOpacityPop?.addEventListener('change', () => {
     invalidateDoneOutputs();
   });
   overlayColor?.addEventListener('input', () => {
@@ -712,7 +831,7 @@
   }
 
   function getOverlaySettings(){
-    const op = overlayOpacity ? (parseInt(overlayOpacity.value) || 0) : 0;
+    const op = overlayOpacityPop ? (parseInt(overlayOpacityPop.value) || 0) : 0;
     if (op <= 0) return null;
     const rgb = hexToRgb(overlayColor?.value || '#000000');
     if (!rgb) return null;
@@ -912,7 +1031,10 @@
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingQuality = 'high';
+        const blurPx = getBlurPx();
+        ctx.filter = blurPx ? `blur(${blurPx}px)` : 'none';
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+        ctx.filter = 'none';
 
         const overlay = getOverlaySettings();
         if (overlay){
