@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How We Work — Kobayashi + Zeitguys</title>
+    <style>
+        :root {
+            --accent: #E63946;
+            --accent-hover: #c92d39;
+            --black: #0a0a0a;
+            --dark: #141414;
+            --gray-900: #1a1a1a;
+            --gray-800: #2a2a2a;
+            --gray-700: #3a3a3a;
+            --gray-600: #555;
+            --gray-400: #999;
+            --gray-200: #e0e0e0;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --accent: #E63946;
+            --accent-hover: #c92d39;
+            --black: #0a0a0a;
+            --dark: #141414;
+            --gray-900: #1a1a1a;
+            --gray-800: #2a2a2a;
+            --gray-700: #3a3a3a;
+            --gray-600: #555;
+            --gray-400: #999;
+            --gray-200: #e0e0e0;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --font-heading: 'Bebas Neue', sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--black);
+            color: var(--white);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(10,10,10,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-800);
+        }
+        .logo {
+            height: 36px;
+            width: auto;
+        }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+        .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--gray-400); transition: color 0.3s; letter-spacing: 0.02em; }
+        .nav-links a:hover { color: var(--white); }
+        .nav-cta {
+            background: var(--accent); color: var(--white) !important;
+            padding: 0.6rem 1.5rem; border-radius: 6px; font-weight: 600; transition: background 0.3s;
+        }
+        .nav-cta:hover { background: var(--accent-hover); }
+
+        /* PAGE NAV */
+        .page-nav {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+            display: flex; gap: 0.5rem; background: var(--gray-900); padding: 0.5rem;
+            border-radius: 10px; border: 1px solid var(--gray-700);
+        }
+        .page-nav a {
+            padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+            color: var(--gray-400); transition: all 0.3s;
+        }
+        .page-nav a:hover, .page-nav a.active { background: var(--accent); color: var(--white); }
+
+        /* PROCESS HERO */
+        .process-hero {
+            padding: 12rem 3rem 6rem; text-align: center; position: relative;
+        }
+        .section-label {
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .section-desc {
+            font-size: 1.15rem; color: var(--gray-400); max-width: 550px;
+            line-height: 1.7; margin: 1.5rem auto 0;
+        }
+
+        /* PROCESS STEPS */
+        .process-section { padding: 4rem 3rem 8rem; max-width: 1000px; margin: 0 auto; }
+
+        .process-step {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 2rem;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--gray-800);
+            position: relative;
+        }
+        .process-step:last-child { border-bottom: none; }
+
+        .step-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent);
+            opacity: 0.3;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            background: var(--black);
+            display: inline-block;
+            padding: 0 0.5rem;
+        }
+
+        .step-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-content p {
+            font-size: 1rem;
+            color: var(--gray-400);
+            line-height: 1.7;
+            max-width: 600px;
+        }
+
+        .step-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .step-tag {
+            background: var(--gray-800);
+            color: var(--gray-200);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* TIMELINE CONNECTOR */
+        .process-step::after {
+            content: '';
+            position: absolute;
+            left: 40px;
+            bottom: 0;
+            width: 2px;
+            height: calc(100% - 3rem);
+            background: var(--gray-800);
+            transform: translateX(-50%);
+        }
+        .process-step:last-child::after { display: none; }
+
+        /* PHILOSOPHY */
+        .philosophy {
+            background: var(--dark);
+            padding: 6rem 3rem;
+            text-align: center;
+        }
+        .philosophy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 3rem auto 0;
+        }
+        .philosophy-item {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: left;
+            transition: all 0.3s;
+        }
+        .philosophy-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .philosophy-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .philosophy-item h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        .philosophy-item p {
+            font-size: 0.9rem;
+            color: var(--gray-400);
+            line-height: 1.6;
+        }
+
+        /* CTA */
+        .cta-section {
+            background: var(--accent); text-align: center; padding: 6rem 3rem;
+        }
+        .cta-section h2 {
+            font-size: clamp(3rem, 6vw, 5rem);
+            margin-bottom: 1rem;
+        }
+        .cta-section p { font-size: 1.2rem; opacity: 0.9; max-width: 500px; margin: 0 auto 2.5rem; }
+        .btn-white {
+            background: var(--white); color: var(--accent); padding: 1rem 2.5rem;
+            border-radius: 8px; font-weight: 700; font-size: 1rem; border: none;
+            cursor: pointer; transition: all 0.3s; display: inline-block;
+        }
+        .btn-white:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* FOOTER */
+        footer {
+            background: var(--dark); padding: 4rem 3rem 2rem; border-top: 1px solid var(--gray-800);
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem;
+        }
+        .footer-brand p { color: var(--gray-400); font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; max-width: 300px; }
+        .footer-col h4 { font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 1.5rem; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.75rem; }
+        .footer-col a { color: var(--gray-200); font-size: 0.9rem; transition: color 0.3s; }
+        .footer-col a:hover { color: var(--accent); }
+        .footer-bottom {
+            border-top: 1px solid var(--gray-800); padding-top: 2rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+        }
+        .footer-bottom p { color: var(--gray-600); font-size: 0.8rem; }
+        .footer-socials { display: flex; gap: 1rem; }
+        .footer-socials a {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--gray-800);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700; transition: all 0.3s;
+        }
+        .footer-socials a:hover { background: var(--accent); color: var(--white); }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-links { display: none; }
+            section { padding: 5rem 1.5rem; }
+            .process-step { grid-template-columns: 1fr; gap: 1rem; }
+            .step-number { font-size: 2rem; }
+            .philosophy-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-nav">
+        <a href="index.html">Home</a>
+        <a href="team.html">Our Team</a>
+        <a href="process.html" class="active">How We Work</a>
+    </div>
+
+    <nav>
+                <img src="https://kobayashi.ca/wp-content/uploads/2023/11/KZ_Logo_150x180-1.png" alt="Kobayashi + Zeitguys" class="logo">
+        <ul class="nav-links">
+            <li><a href="index.html#work">Work</a></li>
+            <li><a href="process.html">How We Work</a></li>
+            <li><a href="team.html">Our Team</a></li>
+            <li><a href="#contact" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </nav>
+
+    <section class="process-hero">
+        <p class="section-label">Our Process</p>
+        <h1 class="section-title">No black boxes. No surprises. Just a proven process that delivers.</h1>
+        <p class="section-desc">Every project follows the same six-step framework — refined over hundreds of successful launches. You'll always know what's happening, when, and why.</p>
+    </section>
+
+    <section class="process-section">
+
+        <div class="process-step">
+            <div class="step-number">01</div>
+            <div class="step-content">
+                <h3>Discovery & Strategy</h3>
+                <p>We start by listening. Deep dive into your business, your audience, your competitors, and your goals. We don't guess — we research. The result is a clear strategy document that becomes our north star.</p>
+                <div class="step-tags">
+                    <span class="step-tag">Stakeholder Interviews</span>
+                    <span class="step-tag">Competitive Audit</span>
+                    <span class="step-tag">User Personas</span>
+                    <span class="step-tag">Goal Mapping</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">02</div>
+            <div class="step-content">
+                <h3>Architecture & Wireframes</h3>
+                <p>Before anything gets pretty, we map it out. Site structure, user flows, and low-fidelity wireframes so we can nail the experience before committing to visuals. No wasted pixels.</p>
+                <div class="step-tags">
+                    <span class="step-tag">Sitemap</span>
+                    <span class="step-tag">User Flows</span>
+                    <span class="step-tag">Wireframes</span>
+                    <span class="step-tag">Content Strategy</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">03</div>
+            <div class="step-content">
+                <h3>Design & Prototype</h3>
+                <p>This is where it comes alive. High-fidelity mockups, interactive prototypes, and a design system that ensures consistency across every page. You'll see exactly what you're getting before a single line of code is written.</p>
+                <div class="step-tags">
+                    <span class="step-tag">UI Design</span>
+                    <span class="step-tag">Interactive Prototype</span>
+                    <span class="step-tag">Design System</span>
+                    <span class="step-tag">Client Review Rounds</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">04</div>
+            <div class="step-content">
+                <h3>Development & Integration</h3>
+                <p>Custom WordPress build. No templates. No page builder bloat. Clean, semantic code that's fast, accessible, and built to scale. We integrate your CRM, analytics, and any third-party tools you need.</p>
+                <div class="step-tags">
+                    <span class="step-tag">Custom WordPress</span>
+                    <span class="step-tag">ACF / Gutenberg</span>
+                    <span class="step-tag">CRM Integration</span>
+                    <span class="step-tag">Performance Optimized</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">05</div>
+            <div class="step-content">
+                <h3>Testing & Launch</h3>
+                <p>Before go-live, we put everything through the wringer. Cross-browser testing, mobile responsiveness, speed audits, accessibility checks, and a full content review. Nothing ships until it's bulletproof.</p>
+                <div class="step-tags">
+                    <span class="step-tag">QA Testing</span>
+                    <span class="step-tag">Cross-Browser</span>
+                    <span class="step-tag">Speed Audit</span>
+                    <span class="step-tag">AODA Compliance</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-step">
+            <div class="step-number">06</div>
+            <div class="step-content">
+                <h3>Support & Growth</h3>
+                <p>Launch isn't the end — it's the beginning. We offer ongoing maintenance, analytics reviews, and iterative improvements to keep your site performing at its best. Think of us as your long-term digital partner.</p>
+                <div class="step-tags">
+                    <span class="step-tag">Maintenance Plans</span>
+                    <span class="step-tag">Analytics Reviews</span>
+                    <span class="step-tag">Content Updates</span>
+                    <span class="step-tag">SEO Monitoring</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="philosophy">
+        <p class="section-label">What Drives Us</p>
+        <h2 class="section-title" style="margin: 0 auto;">Built on principles, not shortcuts.</h2>
+        <div class="philosophy-grid">
+            <div class="philosophy-item">
+                <div class="philosophy-icon">🎯</div>
+                <h4>Strategy First</h4>
+                <p>Every pixel serves a purpose. We don't design for Dribbble — we design for your business goals.</p>
+            </div>
+            <div class="philosophy-item">
+                <div class="philosophy-icon">🤝</div>
+                <h4>Radical Transparency</h4>
+                <p>No hidden fees, no scope creep surprises. You'll always know exactly where your project stands.</p>
+            </div>
+            <div class="philosophy-item">
+                <div class="philosophy-icon">⚡</div>
+                <h4>Performance Obsessed</h4>
+                <p>Fast load times, clean code, and Core Web Vitals that make Google happy. Speed is non-negotiable.</p>
+            </div>
+            <div class="philosophy-item">
+                <div class="philosophy-icon">♿</div>
+                <h4>Accessible by Default</h4>
+                <p>AODA and WCAG compliance isn't an afterthought. Every site we build is accessible from day one.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section" id="contact">
+        <h2>Ready to start?</h2>
+        <p>Tell us about your project and we'll get back to you within 24 hours with a game plan.</p>
+        <a href="mailto:hello@kobayashi.ca" class="btn-white">Get in Touch →</a>
+    </section>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+        <img src="https://kobayashi.ca/wp-content/uploads/2023/11/KZ_Logo_150x180-1.png" alt="Kobayashi + Zeitguys" class="logo">
+                <p>Web design and development agency crafting strategic, creative solutions since day one. Toronto-based, globally minded.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Pages</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#work">Work</a></li>
+                    <li><a href="process.html">How We Work</a></li>
+                    <li><a href="team.html">Our Team</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#">Web Design</a></li>
+                    <li><a href="#">WordPress Dev</a></li>
+                    <li><a href="#">E-Commerce</a></li>
+                    <li><a href="#">Brand Identity</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="mailto:hello@kobayashi.ca">hello@kobayashi.ca</a></li>
+                    <li><a href="tel:14164103266">416-410-3266</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="#">Twitter / X</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Kobayashi + Zeitguys. All rights reserved.</p>
+            <div class="footer-socials">
+                <a href="#">in</a>
+                <a href="#">𝕏</a>
+                <a href="#">fb</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

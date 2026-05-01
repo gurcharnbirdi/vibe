@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Team — Kobayashi + Zeitguys</title>
+    <style>
+        :root {
+            --accent: #E63946;
+            --accent-hover: #c92d39;
+            --black: #0a0a0a;
+            --dark: #141414;
+            --gray-900: #1a1a1a;
+            --gray-800: #2a2a2a;
+            --gray-700: #3a3a3a;
+            --gray-600: #555;
+            --gray-400: #999;
+            --gray-200: #e0e0e0;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --accent: #E63946;
+            --accent-hover: #c92d39;
+            --black: #0a0a0a;
+            --dark: #141414;
+            --gray-900: #1a1a1a;
+            --gray-800: #2a2a2a;
+            --gray-700: #3a3a3a;
+            --gray-600: #555;
+            --gray-400: #999;
+            --gray-200: #e0e0e0;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --font-heading: 'Bebas Neue', sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--black);
+            color: var(--white);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10,10,10,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-800);
+        }
+        .logo {
+            height: 36px;
+            width: auto;
+        }
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+        .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--gray-400); transition: color 0.3s; letter-spacing: 0.02em; }
+        .nav-links a:hover { color: var(--white); }
+        .nav-cta {
+            background: var(--accent); color: var(--white) !important;
+            padding: 0.6rem 1.5rem; border-radius: 6px; font-weight: 600; transition: background 0.3s;
+        }
+        .nav-cta:hover { background: var(--accent-hover); }
+
+        /* PAGE NAV */
+        .page-nav {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+            display: flex; gap: 0.5rem; background: var(--gray-900); padding: 0.5rem;
+            border-radius: 10px; border: 1px solid var(--gray-700);
+        }
+        .page-nav a {
+            padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+            color: var(--gray-400); transition: all 0.3s;
+        }
+        .page-nav a:hover, .page-nav a.active { background: var(--accent); color: var(--white); }
+
+        /* TEAM HERO */
+        .team-hero {
+            padding: 12rem 3rem 6rem;
+            text-align: center;
+            position: relative;
+        }
+        .section-label {
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .section-desc {
+            font-size: 1.15rem; color: var(--gray-400); max-width: 550px;
+            line-height: 1.7; margin: 1.5rem auto 0;
+        }
+
+        /* TEAM GRID */
+        .team-section { padding: 4rem 3rem 8rem; }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            background: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+        .team-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .team-photo {
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+        }
+        .team-photo-inner {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; font-weight: 900; color: var(--gray-700);
+            transition: transform 0.4s;
+        }
+        .team-card:hover .team-photo-inner { transform: scale(1.05); }
+
+        .team-badge {
+            position: absolute; top: 1rem; right: 1rem;
+            background: var(--accent); color: var(--white);
+            padding: 0.3rem 0.8rem; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+        }
+
+        .team-info { padding: 2rem; }
+        .team-name { font-size: 1.6rem; margin-bottom: 0.25rem; }
+        .team-role { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 1rem; }
+        .team-bio { font-size: 0.9rem; color: var(--gray-400); line-height: 1.6; margin-bottom: 1.5rem; }
+
+        .team-fun {
+            background: var(--gray-800);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .team-fun-label {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--gray-600); margin-bottom: 0.5rem;
+        }
+        .team-fun-value {
+            font-size: 0.95rem; color: var(--gray-200); font-weight: 500;
+        }
+
+        .team-socials {
+            display: flex; gap: 0.5rem; margin-top: 1rem;
+        }
+        .team-socials a {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--gray-800); display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; transition: all 0.3s;
+        }
+        .team-socials a:hover { background: var(--accent); color: var(--white); }
+
+        /* CTA */
+        .cta-section {
+            background: var(--accent); text-align: center; padding: 6rem 3rem;
+        }
+        .cta-section h2 {
+            font-size: clamp(3rem, 6vw, 5rem);
+            margin-bottom: 1rem;
+        }
+        .cta-section p { font-size: 1.2rem; opacity: 0.9; max-width: 500px; margin: 0 auto 2.5rem; }
+        .btn-white {
+            background: var(--white); color: var(--accent); padding: 1rem 2.5rem;
+            border-radius: 8px; font-weight: 700; font-size: 1rem; border: none;
+            cursor: pointer; transition: all 0.3s; display: inline-block;
+        }
+        .btn-white:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* FOOTER */
+        footer {
+            background: var(--dark); padding: 4rem 3rem 2rem; border-top: 1px solid var(--gray-800);
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem;
+        }
+        .footer-brand p { color: var(--gray-400); font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; max-width: 300px; }
+        .footer-col h4 { font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 1.5rem; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.75rem; }
+        .footer-col a { color: var(--gray-200); font-size: 0.9rem; transition: color 0.3s; }
+        .footer-col a:hover { color: var(--accent); }
+        .footer-bottom {
+            border-top: 1px solid var(--gray-800); padding-top: 2rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+        }
+        .footer-bottom p { color: var(--gray-600); font-size: 0.8rem; }
+        .footer-socials { display: flex; gap: 1rem; }
+        .footer-socials a {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--gray-800);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700; transition: all 0.3s;
+        }
+        .footer-socials a:hover { background: var(--accent); color: var(--white); }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-links { display: none; }
+            section { padding: 5rem 1.5rem; }
+            .team-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-nav">
+        <a href="index.html">Home</a>
+        <a href="team.html" class="active">Our Team</a>
+        <a href="process.html">How We Work</a>
+    </div>
+
+    <nav>
+                <img src="https://kobayashi.ca/wp-content/uploads/2023/11/KZ_Logo_150x180-1.png" alt="Kobayashi + Zeitguys" class="logo">
+        <ul class="nav-links">
+            <li><a href="index.html#work">Work</a></li>
+            <li><a href="process.html">How We Work</a></li>
+            <li><a href="team.html">Our Team</a></li>
+            <li><a href="#contact" class="nav-cta">Start a Project</a></li>
+        </ul>
+    </nav>
+
+    <section class="team-hero">
+        <p class="section-label">The Humans Behind the Pixels</p>
+        <h1 class="section-title">Meet the team that builds the stuff.</h1>
+        <p class="section-desc">We're a tight crew of designers, developers, and strategists who care way too much about good websites. No egos. No fluff. Just people who love what they do.</p>
+    </section>
+
+    <section class="team-section">
+        <div class="team-grid">
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #1a1a2e, #2a2a3e);">MZ</div>
+                    <span class="team-badge">Founder</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">Mike Zeitguys</div>
+                    <div class="team-role">Co-Founder & Creative Director</div>
+                    <p class="team-bio">The guy who turns "make it pop" into actual design. 15+ years of making brands look like they mean it.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">Espresso pulls, mechanical keyboards, and arguing about kerning.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                        <a href="#">𝕏</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #2d1b3d, #3d2b4d);">RK</div>
+                    <span class="team-badge">Founder</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">Rich Kobayashi</div>
+                    <div class="team-role">Co-Founder & Tech Lead</div>
+                    <p class="team-bio">Writes code that doesn't break. The one who says "actually, that's not how WordPress works" — politely.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">Headless CMS architectures and perfecting his sourdough recipe.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                        <a href="#">𝕏</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #1b3d2d, #2b4d3d);">JL</div>
+                    <span class="team-badge">Designer</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">Jenna Liu</div>
+                    <div class="team-role">Senior UI/UX Designer</div>
+                    <p class="team-bio">Turns wireframes into wow-frames. Has strong opinions about white space and will defend them.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">Boulding at 6am and collecting vintage type specimens.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                        <a href="#">Dr</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #3d2b1b, #4d3b2b);">AP</div>
+                    <span class="team-badge">Developer</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">Alex Petrov</div>
+                    <div class="team-role">Full-Stack Developer</div>
+                    <p class="team-bio">Makes things fast. If a page takes more than 2 seconds to load, Alex takes it personally.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">Rust, synthwave playlists, and automating literally everything.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                        <a href="#">GH</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #1b2d3d, #2b3d4d);">SN</div>
+                    <span class="team-badge">Strategy</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">Sarah Nguyen</div>
+                    <div class="team-role">Project Manager & Strategist</div>
+                    <p class="team-bio">Keeps the trains running on time. The reason we never miss a deadline and clients actually enjoy the process.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">Notion templates, trail running, and finding the best ramen in Toronto.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-card">
+                <div class="team-photo">
+                    <div class="team-photo-inner" style="background: linear-gradient(135deg, #3d1b2d, #4d2b3d);">DM</div>
+                    <span class="team-badge">Content</span>
+                </div>
+                <div class="team-info">
+                    <div class="team-name">David Morrison</div>
+                    <div class="team-role">Content & SEO Specialist</div>
+                    <p class="team-bio">Writes words that rank. Also writes words that make people click things. It's a gift.</p>
+                    <div class="team-fun">
+                        <div class="team-fun-label">Currently Obsessed With</div>
+                        <div class="team-fun-value">AI search optimization and building a cabin in Muskoka.</div>
+                    </div>
+                    <div class="team-socials">
+                        <a href="#">in</a>
+                        <a href="#">𝕏</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="cta-section" id="contact">
+        <h2>Want to join the team?</h2>
+        <p>We're always looking for talented humans. Send us your portfolio, GitHub, or just a great story.</p>
+        <a href="mailto:hello@kobayashi.ca" class="btn-white">Say Hello →</a>
+    </section>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+        <img src="https://kobayashi.ca/wp-content/uploads/2023/11/KZ_Logo_150x180-1.png" alt="Kobayashi + Zeitguys" class="logo">
+                <p>Web design and development agency crafting strategic, creative solutions since day one. Toronto-based, globally minded.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Pages</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html#work">Work</a></li>
+                    <li><a href="process.html">How We Work</a></li>
+                    <li><a href="team.html">Our Team</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#">Web Design</a></li>
+                    <li><a href="#">WordPress Dev</a></li>
+                    <li><a href="#">E-Commerce</a></li>
+                    <li><a href="#">Brand Identity</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="mailto:hello@kobayashi.ca">hello@kobayashi.ca</a></li>
+                    <li><a href="tel:14164103266">416-410-3266</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="#">Twitter / X</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Kobayashi + Zeitguys. All rights reserved.</p>
+            <div class="footer-socials">
+                <a href="#">in</a>
+                <a href="#">𝕏</a>
+                <a href="#">fb</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
