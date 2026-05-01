@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birdi's PDF Compressor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap');
+
+        :root {
+            --color-background-page: #F6F7F8;
+            --color-background-primary: #FFFFFF;
+            --color-background-secondary: #F1F3F4;
+            --color-text-primary: #121415;
+            --color-text-secondary: #5B6166;
+            --color-text-tertiary: #8B9298;
+            --color-border-secondary: rgba(18, 20, 21, 0.18);
+            --color-border-tertiary: rgba(18, 20, 21, 0.10);
+            --color-shadow: rgba(0,0,0,0.06);
+            --accent: #1D9E75;
+            --accent-strong: #0F6E56;
+            --danger: #A32D2D;
+            --danger-bg: #FCEBEB;
+            --success: #3B6D11;
+            --success-bg: #EAF3DE;
+            --border-radius-lg: 16px;
+            --border-radius-md: 12px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background-page: #0C0F10;
+                --color-background-primary: #121617;
+                --color-background-secondary: #0F1314;
+                --color-text-primary: #EEF2F3;
+                --color-text-secondary: #AEB7BC;
+                --color-text-tertiary: #7F8A90;
+                --color-border-secondary: rgba(238,242,243,0.20);
+                --color-border-tertiary: rgba(238,242,243,0.12);
+                --color-shadow: rgba(0,0,0,0.40);
+                --success-bg: rgba(59,109,17,0.20);
+                --danger-bg: rgba(163,45,45,0.22);
+            }
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Syne', sans-serif;
+            background: radial-gradient(1200px 600px at 12% 8%, rgba(29,158,117,0.10), transparent 55%),
+                        radial-gradient(900px 500px at 90% 20%, rgba(29,158,117,0.07), transparent 55%),
+                        var(--color-background-page);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+        }
+
+        #root { padding: 2.25rem 0; }
+        .wrap { max-width: 780px; margin: 0 auto; padding: 0 18px; }
+
+        .header { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+        .title { font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+        .subtitle { margin-top: 6px; font-size: 12px; color: var(--color-text-secondary); font-family: 'DM Mono', monospace; }
+
+        .card {
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 10px 30px var(--color-shadow);
+            padding: 16px;
+        }
+
+        /* Top row: pills + buttons */
+        .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 10px; border-radius: 99px;
+            border: 0.5px solid var(--color-border-tertiary);
+            background: var(--color-background-secondary);
+            font-size: 11px; font-family: 'DM Mono', monospace; color: var(--color-text-secondary);
+        }
+        .pill strong { color: var(--color-text-primary); font-weight: 600; }
+
+        .btn-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            appearance: none; border: none; cursor: pointer;
+            border-radius: 10px; padding: 8px 12px;
+            font-size: 12px; font-weight: 650; letter-spacing: -0.01em;
+            font-family: 'Syne', sans-serif;
+            transition: transform .05s ease, background .15s ease, opacity .15s ease;
+            user-select: none;
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-strong); }
+        .btn-primary:disabled { opacity: .5; cursor: default; transform: none; }
+        .btn-ghost {
+            background: transparent; color: var(--color-text-primary);
+            border: 0.5px solid var(--color-border-secondary);
+        }
+        .btn-ghost:hover { background: var(--color-background-secondary); }
+        .btn-ghost:disabled { opacity: .5; cursor: default; transform: none; }
+        .btn-danger {
+            background: transparent; color: var(--danger);
+            border: 0.5px solid rgba(163,45,45,0.35);
+        }
+        .btn-danger:hover { background: var(--danger-bg); }
+
+        /* Drop zone */
+        #dropzone {
+            border: 1.5px dashed var(--color-border-secondary);
+            border-radius: var(--border-radius-lg);
+            padding: 2.25rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            background: linear-gradient(180deg, var(--color-background-secondary), transparent 60%);
+            outline: none;
+            position: relative;
+        }
+        #dropzone.drag { border-color: var(--accent); background: linear-gradient(180deg, rgba(29,158,117,0.12), transparent 60%); }
+        #dropzone:focus-visible { box-shadow: 0 0 0 4px rgba(29,158,117,0.18); border-color: var(--accent); }
+        #dropzone svg { margin-bottom: 1rem; opacity: .7; }
+        .drop-title { font-size: 18px; font-weight: 700; margin-bottom: .5rem; letter-spacing: -0.01em; }
+        .drop-sub { font-size: 12px; color: var(--color-text-secondary); font-family: 'DM Mono', monospace; }
+        .drop-actions { margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        #file-input { display: none; }
+
+        /* Controls bar */
+        #controls {
+            display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;
+            padding: 9px 10px; border-radius: var(--border-radius-md);
+            background: var(--color-background-secondary);
+            border: 0.5px solid var(--color-border-tertiary);
+        }
+        .ctrl-label { font-size: 12px; color: var(--color-text-secondary); font-family: 'DM Mono', monospace; white-space: nowrap; }
+        .divider { width: 0.5px; height: 20px; background: var(--color-border-tertiary); }
+
+        /* Compression slider */
+        #compression-wrap { display: flex; align-items: center; gap: 8px; }
+        #compression-slider {
+            width: 120px; -webkit-appearance: none; height: 4px;
+            background: var(--color-border-secondary); border-radius: 2px; outline: none; cursor: pointer;
+        }
+        #compression-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px;
+            background: var(--color-text-primary); border-radius: 50%; cursor: pointer;
+        }
+        #compression-val { font-size: 12px; font-family: 'DM Mono', monospace; min-width: 48px; color: var(--color-text-primary); }
+
+        /* Progress */
+        .progress { margin-left: auto; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+        .progressbar {
+            height: 10px; width: 120px; border-radius: 999px;
+            background: rgba(0,0,0,0.10); overflow: hidden; border: 0.5px solid var(--color-border-tertiary);
+        }
+        @media (prefers-color-scheme: dark) { .progressbar { background: rgba(255,255,255,0.10); } }
+        .progressbar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), rgba(29,158,117,0.55)); transition: width .25s ease; border-radius: 999px; }
+        .progress-text { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--color-text-secondary); white-space: nowrap; }
+
+        /* Queue */
+        #queue { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* Queue item */
+        .item {
+            display: grid;
+            grid-template-columns: 44px minmax(0,1fr) auto;
+            gap: 12px; align-items: center;
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-md);
+            padding: .8rem .9rem;
+        }
+        .item-icon {
+            width: 44px; height: 44px; border-radius: 10px;
+            background: var(--color-background-secondary);
+            display: flex; align-items: center; justify-content: center;
+            border: 0.5px solid var(--color-border-tertiary);
+            flex-shrink: 0;
+        }
+        .item-icon svg { opacity: .6; }
+        .item-name { font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-meta { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--color-text-secondary); margin-top: 3px; }
+        .item-meta .arrow { color: var(--accent); }
+
+        .item-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        /* Status badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 9px; border-radius: 99px; font-size: 11px;
+            font-family: 'DM Mono', monospace; font-weight: 500; white-space: nowrap;
+        }
+        .badge-waiting { background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); }
+        .badge-processing { background: rgba(29,158,117,0.12); color: var(--accent); border: 0.5px solid rgba(29,158,117,0.25); }
+        .badge-done { background: var(--success-bg); color: var(--success); border: 0.5px solid rgba(59,109,17,0.20); }
+        .badge-error { background: var(--danger-bg); color: var(--danger); border: 0.5px solid rgba(163,45,45,0.20); }
+
+        /* Spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 10px; height: 10px; border: 1.5px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--color-text-primary); color: var(--color-background-page);
+            padding: 10px 18px; border-radius: 99px; font-size: 13px; font-family: 'DM Mono', monospace;
+            white-space: nowrap; pointer-events: none; opacity: 0;
+            transition: transform .3s ease, opacity .3s ease; z-index: 999;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+<div id="root">
+    <div class="wrap">
+
+        <div class="header">
+            <div>
+                <h1 class="title">Birdi's PDF Compressor</h1>
+                <p class="subtitle">Compress PDFs in your browser — nothing is uploaded.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="top-row">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <span class="pill">Queue <strong id="queue-count">0</strong></span>
+                    <span class="pill">Done <strong id="done-count">0</strong></span>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="process-btn" disabled>Compress all</button>
+                    <button class="btn btn-ghost" id="dl-all-btn" disabled>Download all</button>
+                    <button class="btn btn-danger" id="clear-btn">Clear</button>
+                </div>
+            </div>
+
+            <div id="dropzone" tabindex="0" role="button" aria-label="Drop PDFs here or click to browse">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <p class="drop-title">Drop PDFs here</p>
+                <p class="drop-sub">or click to browse · supports multiple files</p>
+                <div class="drop-actions">
+                    <button class="btn btn-ghost" onclick="document.getElementById('file-input').click();event.stopPropagation()">Browse files</button>
+                </div>
+                <input type="file" id="file-input" accept=".pdf" multiple>
+            </div>
+
+            <div id="controls">
+                <span class="ctrl-label">Compression</span>
+                <div id="compression-wrap">
+                    <input type="range" id="compression-slider" min="0" max="100" value="50">
+                    <span id="compression-val">Medium</span>
+                </div>
+                <div class="divider"></div>
+                <div class="progress">
+                    <div class="progressbar"><div id="progress-bar"></div></div>
+                    <span class="progress-text" id="progress-text">0 / 0</span>
+                </div>
+            </div>
+
+            <div id="queue"></div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+    const dropzone     = document.getElementById('dropzone');
+    const fileInput    = document.getElementById('file-input');
+    const queueEl      = document.getElementById('queue');
+    const queueCount   = document.getElementById('queue-count');
+    const doneCount    = document.getElementById('done-count');
+    const processBtn   = document.getElementById('process-btn');
+    const dlAllBtn     = document.getElementById('dl-all-btn');
+    const clearBtn     = document.getElementById('clear-btn');
+    const comprSlider  = document.getElementById('compression-slider');
+    const comprVal     = document.getElementById('compression-val');
+    const progressBar  = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const toast        = document.getElementById('toast');
+
+    let files = [];
+    let toastTimer;
+
+    function showToast(msg) {
+        clearTimeout(toastTimer);
+        toast.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    comprSlider.addEventListener('input', () => {
+        const v = parseInt(comprSlider.value);
+        comprVal.textContent = v < 33 ? 'Low' : v < 66 ? 'Medium' : 'High';
+    });
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('drag');
+        addFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => addFiles(e.target.files));
+    clearBtn.addEventListener('click', () => { files = []; render(); });
+    processBtn.addEventListener('click', processAll);
+    dlAllBtn.addEventListener('click', downloadAll);
+
+    function addFiles(list) {
+        for (const f of list) {
+            if (f.type !== 'application/pdf') continue;
+            if (files.find(x => x.name === f.name && x.size === f.size)) continue;
+            files.push({ id: Date.now() + Math.random(), file: f, name: f.name, size: f.size, status: 'waiting', outBlob: null });
+        }
+        render();
+    }
+
+    function fmt(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function render() {
+        const done = files.filter(f => f.status === 'done').length;
+        queueCount.textContent = files.length - done;
+        doneCount.textContent = done;
+        progressText.textContent = `${done} / ${files.length}`;
+        progressBar.style.width = files.length ? `${(done / files.length) * 100}%` : '0%';
+        processBtn.disabled = files.length === 0 || files.every(f => f.status === 'done');
+        dlAllBtn.disabled = !files.some(f => f.status === 'done');
+
+        queueEl.innerHTML = '';
+        files.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.dataset.id = f.id;
+
+            // Icon
+            const icon = document.createElement('div');
+            icon.className = 'item-icon';
+            icon.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="9.01" y2="13"/><path d="M9 17h6"/><path d="M9 13h6"/></svg>`;
+
+            // Info
+            const info = document.createElement('div');
+            const sizeLine = f.outBlob
+                ? `${fmt(f.size)} <span class="arrow">→</span> ${fmt(f.outBlob.size)}`
+                : fmt(f.size);
+            info.innerHTML = `<div class="item-name">${f.name}</div><div class="item-meta">${sizeLine}</div>`;
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.className = 'item-actions';
+
+            let badgeClass = 'badge-waiting', badgeLabel = 'waiting';
+            if (f.status === 'processing') { badgeClass = 'badge-processing'; badgeLabel = '<span class="spinner"></span>compressing'; }
+            else if (f.status === 'done') { badgeClass = 'badge-done'; badgeLabel = '✓ done'; }
+            else if (f.status === 'error') { badgeClass = 'badge-error'; badgeLabel = '✕ error'; }
+
+            const badge = document.createElement('span');
+            badge.className = `badge ${badgeClass}`;
+            badge.innerHTML = badgeLabel;
+            actions.appendChild(badge);
+
+            if (f.status === 'done' && f.outBlob) {
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'btn btn-ghost';
+                dlBtn.style.fontSize = '11px';
+                dlBtn.style.padding = '5px 10px';
+                dlBtn.textContent = 'Download';
+                dlBtn.onclick = () => downloadFile(f);
+                actions.appendChild(dlBtn);
+            }
+
+            div.appendChild(icon);
+            div.appendChild(info);
+            div.appendChild(actions);
+            queueEl.appendChild(div);
+        });
+    }
+
+    async function compressPDF(file, level) {
+        const buf = await file.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+        const scale = level < 33 ? 0.85 : level < 66 ? 0.65 : 0.45;
+        for (const page of pdfDoc.getPages()) {
+            const { width, height } = page.getSize();
+            page.setSize(width * scale, height * scale);
+        }
+        const bytes = await pdfDoc.save({ useObjectStreams: false });
+        return new Blob([bytes], { type: 'application/pdf' });
+    }
+
+    async function processAll() {
+        processBtn.disabled = true;
+        const level = parseInt(comprSlider.value);
+        for (const f of files) {
+            if (f.status === 'done') continue;
+            f.status = 'processing';
+            render();
+            try {
+                f.outBlob = await compressPDF(f.file, level);
+                f.status = 'done';
+            } catch (err) {
+                f.status = 'error';
+                console.error(err);
+            }
+            render();
+        }
+        processBtn.disabled = false;
+        showToast('Compression complete!');
+    }
+
+    function downloadFile(f) {
+        const url = URL.createObjectURL(f.outBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = f.name.replace(/\.pdf$/i, '_compressed.pdf');
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function downloadAll() {
+        files.filter(f => f.status === 'done' && f.outBlob).forEach(downloadFile);
+    }
+
+    render();
+</script>
+</body>
+</html>
