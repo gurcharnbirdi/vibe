@@ -1,0 +1,648 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sky: #1a1a4e;
+    --moon: #f9c74f;
+    --star: #fff8e7;
+    --cloud: #e8f4fd;
+    --purple-l: #c084fc;
+    --purple-d: #7c3aed;
+    --teal-l: #5eead4;
+    --teal-d: #0d9488;
+    --coral-l: #fca5a5;
+    --coral-d: #dc2626;
+    --green-l: #86efac;
+    --green-d: #16a34a;
+    --amber-l: #fcd34d;
+    --amber-d: #d97706;
+  }
+
+  body { font-family: 'Nunito', sans-serif; background: transparent; }
+
+  .app {
+    background: linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    border-radius: 20px;
+    padding: 0 0 2rem;
+    min-height: 600px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .stars-bg {
+    position: absolute; top: 0; left: 0; right: 0; height: 100px;
+    pointer-events: none; overflow: hidden;
+  }
+  .star-dot {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle 3s infinite alternate;
+  }
+
+  @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 1; } }
+
+  .header {
+    text-align: center;
+    padding: 2rem 1.5rem 1.5rem;
+    position: relative;
+  }
+  .moon-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+  .app-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: var(--moon);
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+  .app-subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 0.25rem;
+    font-weight: 500;
+  }
+
+  .progress-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 1.5rem 1.5rem;
+    align-items: center;
+  }
+  .step-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .step-dot.active { background: var(--moon); transform: scale(1.4); }
+  .step-dot.done { background: var(--teal-l); }
+  .step-connector {
+    width: 24px; height: 2px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 1px;
+    transition: background 0.3s;
+  }
+  .step-connector.done { background: var(--teal-l); }
+
+  .card {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 1.25rem 1.25rem 1rem;
+    margin: 0 1rem 1rem;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .card.hidden { display: none; }
+  .card.entering { animation: slideIn 0.4s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .step-badge {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #111; flex-shrink: 0;
+  }
+  .step-label {
+    font-size: 15px; font-weight: 700; color: white;
+  }
+  .step-desc {
+    font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 500;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 0.75rem;
+  }
+  .photo-slot {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 2px dashed rgba(255,255,255,0.25);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    position: relative;
+    background: rgba(255,255,255,0.04);
+  }
+  .photo-slot:hover { border-color: var(--purple-l); background: rgba(192,132,252,0.1); }
+  .photo-slot.filled { border: 2px solid var(--teal-l); }
+  .photo-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .photo-slot .plus { font-size: 22px; color: rgba(255,255,255,0.3); }
+  .photo-slot .slot-label { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 4px; }
+  .photo-slot .remove-btn {
+    position: absolute; top: 4px; right: 4px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(220,38,38,0.8); color: white;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none;
+    display: none;
+  }
+  .photo-slot.filled:hover .remove-btn { display: flex; }
+
+  .char-name-row {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .char-name-input {
+    flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 8px 12px; color: white; font-size: 13px;
+    font-family: 'Nunito', sans-serif;
+    transition: border-color 0.2s;
+  }
+  .char-name-input::placeholder { color: rgba(255,255,255,0.35); }
+  .char-name-input:focus { outline: none; border-color: var(--purple-l); }
+
+  .chip-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 0.5rem;
+  }
+  .chip {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .chip:hover { background: rgba(255,255,255,0.12); color: white; }
+  .chip.selected {
+    border-color: transparent; color: #111; font-weight: 700;
+  }
+
+  .text-input-wrap {
+    position: relative; margin-top: 0.5rem;
+  }
+  .text-input-field {
+    width: 100%; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px; padding: 10px 14px;
+    color: white; font-size: 13px; font-family: 'Nunito', sans-serif;
+    transition: border-color 0.2s; resize: none;
+  }
+  .text-input-field::placeholder { color: rgba(255,255,255,0.35); }
+  .text-input-field:focus { outline: none; border-color: var(--purple-l); }
+
+  .suggestions-label {
+    font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px; margin-top: 10px;
+  }
+
+  .btn-row {
+    display: flex; gap: 10px; margin: 1rem 1rem 0;
+  }
+  .btn {
+    flex: 1; padding: 13px; border-radius: 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px; letter-spacing: 0.5px;
+    cursor: pointer; border: none;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .btn-back {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.15);
+    flex: 0 0 auto; padding: 13px 20px;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.12); color: white; }
+  .btn-next {
+    background: linear-gradient(135deg, var(--purple-d), #9333ea);
+    color: white;
+    box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+  }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+  .btn-next:active { transform: translateY(0); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-generate {
+    background: linear-gradient(135deg, #f59e0b, var(--moon));
+    color: #111;
+    box-shadow: 0 4px 15px rgba(249,199,79,0.4);
+    font-size: 16px;
+  }
+  .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,199,79,0.5); }
+
+  .story-output {
+    margin: 0 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: none;
+  }
+  .story-output.visible { display: block; animation: slideIn 0.4s ease-out; }
+  .story-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px; color: var(--moon);
+    margin-bottom: 0.75rem; text-align: center;
+  }
+  .story-text {
+    font-size: 14px; color: rgba(255,255,255,0.85);
+    line-height: 1.8; white-space: pre-wrap;
+  }
+  .story-loading {
+    text-align: center; padding: 2rem 0;
+    color: rgba(255,255,255,0.6); font-size: 14px;
+  }
+  .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .loading-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--moon); animation: bounce 0.8s infinite alternate;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { from { transform: translateY(0); opacity: 0.4; } to { transform: translateY(-6px); opacity: 1; } }
+
+  .summary-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem;
+    margin: 0 1rem 1rem;
+    display: none;
+  }
+  .summary-card.visible { display: block; animation: slideIn 0.3s ease-out; }
+  .summary-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .summary-key { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; min-width: 90px; padding-top: 1px; }
+  .summary-val { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; }
+  .char-preview { display: flex; gap: 6px; flex-wrap: wrap; }
+  .char-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid var(--teal-l);
+    overflow: hidden; background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--teal-l);
+  }
+  .char-avatar img { width: 100%; height: 100%; object-fit: cover; }
+</style>
+
+<div class="app">
+  <div class="stars-bg" id="starsContainer"></div>
+
+  <div class="header">
+    <span class="moon-icon">🌙</span>
+    <div class="app-title">Story Dreamer</div>
+    <div class="app-subtitle">Create a magical bedtime story</div>
+  </div>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="summary-card" id="summaryCard"></div>
+
+  <div id="step1" class="card entering">
+    <div class="card-header">
+      <div class="step-badge" style="background: var(--purple-l);">1</div>
+      <div>
+        <div class="step-label">Meet the characters</div>
+        <div class="step-desc">Upload photos and give them names</div>
+      </div>
+    </div>
+    <div class="photo-grid" id="photoGrid"></div>
+    <button class="chip" id="addCharBtn" style="width:100%; border-radius:10px; padding:10px; font-size:13px; border-style:dashed; background:rgba(255,255,255,0.03);">+ Add another character</button>
+  </div>
+
+  <div id="step2" class="card hidden">
+    <div class="card-header">
+      <div class="step-badge" style="background: var(--amber-l);">2</div>
+      <div>
+        <div class="step-label">Who is this story for?</div>
+        <div class="step-desc">Pick the age group</div>
+      </div>
+    </div>
+    <div class="chip-grid" id="ageChips"></div>
+  </div>
+
+  <div id="step3" class="card hidden">
+    <div class="card-header">
+      <div class="step-badge" style="background: var(--teal-l);">3</div>
+      <div>
+        <div class="step-label">What's the story about?</div>
+        <div class="step-desc">Choose a subject or write your own</div>
+      </div>
+    </div>
+    <div class="chip-grid" id="subjectChips"></div>
+    <div class="text-input-wrap">
+      <input id="customSubject" class="text-input-field" placeholder="Or type your own subject..." style="height:42px;" />
+    </div>
+  </div>
+
+  <div id="step4" class="card hidden">
+    <div class="card-header">
+      <div class="step-badge" style="background: var(--coral-l);">4</div>
+      <div>
+        <div class="step-label">What's the problem?</div>
+        <div class="step-desc">Every good story needs a challenge</div>
+      </div>
+    </div>
+    <div class="chip-grid" id="problemChips"></div>
+    <div class="text-input-wrap">
+      <input id="customProblem" class="text-input-field" placeholder="Or describe the problem..." style="height:42px;" />
+    </div>
+  </div>
+
+  <div id="step5" class="card hidden">
+    <div class="card-header">
+      <div class="step-badge" style="background: var(--green-l);">5</div>
+      <div>
+        <div class="step-label">How is it solved?</div>
+        <div class="step-desc">The happy ending your hero finds</div>
+      </div>
+    </div>
+    <div class="chip-grid" id="solutionChips"></div>
+    <div class="text-input-wrap">
+      <input id="customSolution" class="text-input-field" placeholder="Or describe the solution..." style="height:42px;" />
+    </div>
+  </div>
+
+  <div class="btn-row" id="btnRow">
+    <button class="btn btn-back hidden" id="backBtn">← Back</button>
+    <button class="btn btn-next" id="nextBtn">Next ✨</button>
+  </div>
+
+  <div class="story-output" id="storyOutput">
+    <div class="story-loading" id="storyLoading">
+      <div style="font-size:2rem; margin-bottom:0.5rem;">📖</div>
+      Writing your story...
+      <div class="loading-dots" style="display:block; margin-top:0.75rem;">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div id="storyTitle" class="story-title" style="display:none;"></div>
+    <div id="storyText" class="story-text"></div>
+    <div id="storyActions" style="display:none; margin-top:1rem; text-align:center; display:flex; gap:8px; flex-direction:column;">
+      <button class="btn btn-generate" id="regenerateBtn" style="font-size:13px; padding:10px;">🔄 Try a different story</button>
+      <button class="btn btn-back" id="editBtn" style="font-size:13px; padding:10px; text-align:center;">✏️ Change story details</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none;" />
+
+<script>
+const starsContainer = document.getElementById('starsContainer');
+for (let i = 0; i < 30; i++) {
+  const s = document.createElement('div');
+  s.className = 'star-dot';
+  const sz = Math.random() * 2.5 + 1;
+  s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*2}s;`;
+  starsContainer.appendChild(s);
+}
+
+const steps = 5;
+let currentStep = 1;
+let characters = [];
+let pendingSlotIndex = null;
+
+const state = {
+  age: '',
+  subject: '',
+  problem: '',
+  solution: ''
+};
+
+const ageOptions = [
+  { label: '2–4 yrs', desc: 'Simple & sweet', emoji: '🐣' },
+  { label: '5–7 yrs', desc: 'Fun adventures', emoji: '🚀' },
+  { label: '8–10 yrs', desc: 'Epic quests', emoji: '⚔️' },
+  { label: '11–12 yrs', desc: 'Deeper tales', emoji: '🌌' }
+];
+
+const subjectOptions = ['Magical forest', 'Outer space', 'Under the sea', 'A kingdom far away', 'A cozy village', 'A big city', 'The clouds above', 'A secret garden'];
+const problemOptions = ['Lost and can\'t find home', 'Missing a best friend', 'Too scared to try', 'Something was stolen', 'Nobody believes them', 'Made a big mistake', 'Feeling left out', 'A magical creature needs help'];
+const solutionOptions = ['Being brave and honest', 'Teamwork and friendship', 'Asking for help', 'A surprise from nature', 'Kindness wins the day', 'Using clever thinking', 'Believing in yourself', 'Forgiveness and love'];
+
+function buildProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  for (let i = 1; i <= steps; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i < currentStep ? ' done' : '') + (i === currentStep ? ' active' : '');
+    bar.appendChild(dot);
+    if (i < steps) {
+      const conn = document.createElement('div');
+      conn.className = 'step-connector' + (i < currentStep ? ' done' : '');
+      bar.appendChild(conn);
+    }
+  }
+}
+
+function buildCharSlots() {
+  if (characters.length === 0) characters = [{ name: '', img: null }, { name: '', img: null }];
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  characters.forEach((char, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'photo-slot' + (char.img ? ' filled' : '');
+    slot.innerHTML = char.img
+      ? `<img src="${char.img}" /><input class="char-name-input" placeholder="Name..." value="${char.name}" style="position:absolute;bottom:0;left:0;right:0;border-radius:0 0 10px 10px;background:rgba(0,0,0,0.6);border:none;padding:5px 8px;font-size:11px;" data-idx="${i}" /><button class="remove-btn" data-idx="${i}">×</button>`
+      : `<div class="plus">+</div><div class="slot-label">${i === 0 ? 'Hero' : i === 1 ? 'Sidekick' : 'Friend ' + i}</div>`;
+    slot.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) return;
+      if (e.target.tagName === 'INPUT') return;
+      if (!char.img) { pendingSlotIndex = i; document.getElementById('fileInput').click(); }
+    });
+    grid.appendChild(slot);
+  });
+  grid.querySelectorAll('.char-name-input').forEach(input => {
+    input.addEventListener('input', e => { characters[e.target.dataset.idx].name = e.target.value; });
+  });
+  grid.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(e.target.dataset.idx);
+      characters[idx].img = null; characters[idx].name = '';
+      buildCharSlots();
+    });
+  });
+}
+
+document.getElementById('addCharBtn').addEventListener('click', () => {
+  if (characters.length < 6) { characters.push({ name: '', img: null }); buildCharSlots(); }
+});
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file || pendingSlotIndex === null) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    characters[pendingSlotIndex].img = ev.target.result;
+    buildCharSlots();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+function buildChips(containerId, options, stateKey, isObjects) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (state[stateKey] === (isObjects ? opt.label : opt) ? ' selected' : '');
+    const val = isObjects ? opt.label : opt;
+    if (isObjects) {
+      chip.innerHTML = `${opt.emoji} ${opt.label}`;
+      const colors = ['#c084fc','#fcd34d','#5eead4','#86efac'];
+      if (state[stateKey] === val) { chip.style.background = colors[options.indexOf(opt)]; chip.style.borderColor = colors[options.indexOf(opt)]; }
+    } else {
+      chip.textContent = val;
+      if (state[stateKey] === val) { chip.style.background = 'rgba(192,132,252,0.3)'; chip.style.borderColor = 'var(--purple-l)'; chip.style.color = 'white'; }
+    }
+    chip.addEventListener('click', () => {
+      state[stateKey] = state[stateKey] === val ? '' : val;
+      buildChips(containerId, options, stateKey, isObjects);
+      if (stateKey === 'subject') document.getElementById('customSubject').value = '';
+      if (stateKey === 'problem') document.getElementById('customProblem').value = '';
+      if (stateKey === 'solution') document.getElementById('customSolution').value = '';
+    });
+    container.appendChild(chip);
+  });
+}
+
+['customSubject','customProblem','customSolution'].forEach(id => {
+  const key = id.replace('custom','').toLowerCase();
+  document.getElementById(id).addEventListener('input', e => {
+    state[key] = e.target.value;
+    const chipId = key + 'Chips';
+    const opts = key === 'subject' ? subjectOptions : key === 'problem' ? problemOptions : solutionOptions;
+    opts.forEach(o => {});
+    document.querySelectorAll(`#${chipId} .chip`).forEach(c => {
+      c.classList.remove('selected');
+      c.style.background = ''; c.style.borderColor = ''; c.style.color = '';
+    });
+  });
+});
+
+function updateSummary() {
+  const card = document.getElementById('summaryCard');
+  if (currentStep <= 1) { card.classList.remove('visible'); return; }
+  card.classList.add('visible');
+  const namedChars = characters.filter(c => c.img || c.name);
+  let html = '';
+  if (namedChars.length) {
+    html += `<div class="summary-row"><div class="summary-key">Characters</div><div class="summary-val"><div class="char-preview">`;
+    namedChars.forEach(c => {
+      html += `<div class="char-avatar" title="${c.name}">${c.img ? `<img src="${c.img}"/>` : (c.name ? c.name[0].toUpperCase() : '?')}</div>`;
+    });
+    const names = namedChars.map(c=>c.name).filter(Boolean);
+    if (names.length) html += `<span style="font-size:12px;color:rgba(255,255,255,0.6);align-self:center;">${names.join(' & ')}</span>`;
+    html += `</div></div></div>`;
+  }
+  if (state.age) html += `<div class="summary-row"><div class="summary-key">Age</div><div class="summary-val">${state.age}</div></div>`;
+  if (state.subject) html += `<div class="summary-row"><div class="summary-key">Setting</div><div class="summary-val">${state.subject}</div></div>`;
+  if (state.problem) html += `<div class="summary-row"><div class="summary-key">Challenge</div><div class="summary-val">${state.problem}</div></div>`;
+  if (state.solution) html += `<div class="summary-row"><div class="summary-key">Solution</div><div class="summary-val">${state.solution}</div></div>`;
+  card.innerHTML = html;
+}
+
+function showStep(n) {
+  for (let i = 1; i <= steps; i++) {
+    const el = document.getElementById('step' + i);
+    if (i === n) { el.classList.remove('hidden'); el.classList.add('entering'); setTimeout(()=>el.classList.remove('entering'),400); }
+    else el.classList.add('hidden');
+  }
+  document.getElementById('backBtn').classList.toggle('hidden', n === 1);
+  const nextBtn = document.getElementById('nextBtn');
+  if (n === steps) {
+    nextBtn.textContent = '✨ Create Story!';
+    nextBtn.className = 'btn btn-generate';
+  } else {
+    nextBtn.textContent = 'Next ✨';
+    nextBtn.className = 'btn btn-next';
+  }
+  document.getElementById('storyOutput').classList.remove('visible');
+  document.getElementById('btnRow').style.display = 'flex';
+  buildProgress();
+  updateSummary();
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentStep < steps) {
+    currentStep++;
+    showStep(currentStep);
+  } else {
+    generateStory();
+  }
+});
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  if (currentStep > 1) { currentStep--; showStep(currentStep); }
+});
+
+document.getElementById('regenerateBtn').addEventListener('click', generateStory);
+document.getElementById('editBtn').addEventListener('click', () => {
+  currentStep = steps;
+  document.getElementById('storyOutput').classList.remove('visible');
+  document.getElementById('btnRow').style.display = 'flex';
+  showStep(currentStep);
+});
+
+async function generateStory() {
+  const namedChars = characters.filter(c => c.img || c.name);
+  const charNames = namedChars.map((c,i) => c.name || ['Sunny','Pip','Boo','Cleo','Mochi','Ziggy'][i]).join(' and ');
+
+  document.getElementById('btnRow').style.display = 'none';
+  const output = document.getElementById('storyOutput');
+  output.classList.add('visible');
+  document.getElementById('storyLoading').style.display = 'block';
+  document.getElementById('storyTitle').style.display = 'none';
+  document.getElementById('storyText').textContent = '';
+  document.getElementById('storyActions').style.display = 'none';
+
+  const ageMap = { '2–4 yrs': 'toddlers aged 2-4, using very simple words, short sentences, repetition, and a cozy gentle tone', '5–7 yrs': 'children aged 5-7, using simple vocabulary, fun descriptions, and playful adventure', '8–10 yrs': 'children aged 8-10, with richer vocabulary, exciting plot twists, and meaningful lessons', '11–12 yrs': 'preteens aged 11-12, with more complex storytelling, emotional depth, and inspiring themes' };
+  const ageDesc = ageMap[state.age] || 'young children';
+
+  const prompt = `Write a magical, engaging bedtime story for ${ageDesc}.
+Characters: ${charNames || 'a brave little hero'}
+Setting: ${state.subject || 'an enchanted land'}
+Problem: ${state.problem || 'a mysterious challenge'}
+Solution/ending: ${state.solution || 'they discover something wonderful'}
+
+Format your response as:
+TITLE: [a creative story title]
+STORY: [the full story, 3-5 paragraphs, with a warm comforting ending perfect for bedtime]
+
+Make it imaginative, age-appropriate, and end with the characters feeling safe, happy, and ready for sleep.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const titleMatch = text.match(/TITLE:\s*(.+)/);
+    const storyMatch = text.match(/STORY:\s*([\s\S]+)/);
+    document.getElementById('storyLoading').style.display = 'none';
+    document.getElementById('storyTitle').style.display = 'block';
+    document.getElementById('storyTitle').textContent = titleMatch ? titleMatch[1].trim() : '✨ Your Story';
+    document.getElementById('storyText').textContent = storyMatch ? storyMatch[1].trim() : text;
+    document.getElementById('storyActions').style.display = 'flex';
+  } catch (err) {
+    document.getElementById('storyLoading').style.display = 'none';
+    document.getElementById('storyText').textContent = 'Oops! The story magic fizzled. Please try again.';
+    document.getElementById('storyActions').style.display = 'flex';
+  }
+}
+
+buildChips('ageChips', ageOptions, 'age', true);
+buildChips('subjectChips', subjectOptions, 'subject', false);
+buildChips('problemChips', problemOptions, 'problem', false);
+buildChips('solutionChips', solutionOptions, 'solution', false);
+buildCharSlots();
+buildProgress();
+</script>

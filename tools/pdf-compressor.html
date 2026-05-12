@@ -271,7 +271,6 @@
 
 <div id="toast"></div>
 
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
     const dropzone     = document.getElementById('dropzone');
     const fileInput    = document.getElementById('file-input');
@@ -390,20 +389,41 @@
     }
 
     async function compressPDF(file, level) {
-        const buf = await file.arrayBuffer();
-        const pdfDoc = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
-        const scale = level < 33 ? 0.85 : level < 66 ? 0.65 : 0.45;
-        for (const page of pdfDoc.getPages()) {
-            const { width, height } = page.getSize();
-            page.setSize(width * scale, height * scale);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('level', level);
+        
+        try {
+            const response = await fetch('http://localhost:8765/compress', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            
+            return await response.blob();
+        } catch (err) {
+            console.error('Compression error:', err);
+            throw new Error('Failed to compress PDF. Make sure the Python server is running on port 8765.');
         }
-        const bytes = await pdfDoc.save({ useObjectStreams: false });
-        return new Blob([bytes], { type: 'application/pdf' });
     }
 
     async function processAll() {
         processBtn.disabled = true;
         const level = parseInt(comprSlider.value);
+        
+        // Check if server is running
+        try {
+            const response = await fetch('http://localhost:8765/compress', { method: 'OPTIONS' });
+            if (!response.ok) throw new Error('Server not ready');
+        } catch {
+            showToast('⚠️ Python server not running. Start it with: python3 pdf_server.py');
+            processBtn.disabled = false;
+            return;
+        }
+        
         for (const f of files) {
             if (f.status === 'done') continue;
             f.status = 'processing';
@@ -414,11 +434,12 @@
             } catch (err) {
                 f.status = 'error';
                 console.error(err);
+                showToast('❌ ' + err.message);
             }
             render();
         }
         processBtn.disabled = false;
-        showToast('Compression complete!');
+        showToast('✓ Compression complete!');
     }
 
     function downloadFile(f) {

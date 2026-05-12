@@ -1,0 +1,366 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #app {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--color-text-primary);
+    min-height: 600px;
+    padding: 2rem 1rem;
+  }
+
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Landing */
+  .landing { text-align: center; max-width: 560px; margin: 0 auto; padding: 2rem 0; }
+  .badge { display: inline-block; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 20px; font-size: 12px; color: var(--color-text-secondary); padding: 4px 14px; margin-bottom: 1.5rem; letter-spacing: 0.04em; }
+  .landing h1 { font-family: 'DM Serif Display', serif; font-size: 38px; line-height: 1.15; margin-bottom: 1rem; }
+  .landing h1 em { font-style: italic; }
+  .landing p.sub { font-size: 16px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 2rem; max-width: 420px; margin-left: auto; margin-right: auto; }
+  .cta-btn { background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-lg); padding: 14px 32px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; transition: opacity 0.2s; width: 100%; max-width: 320px; }
+  .cta-btn:hover { opacity: 0.85; }
+  .trust { margin-top: 1.5rem; font-size: 13px; color: var(--color-text-secondary); }
+  .stats-row { display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); }
+
+  /* Quiz */
+  .quiz-wrap { max-width: 580px; margin: 0 auto; }
+  .progress-bar { background: var(--color-background-secondary); border-radius: 4px; height: 4px; margin-bottom: 2.5rem; overflow: hidden; }
+  .progress-fill { background: var(--color-text-primary); height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .q-counter { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 0.75rem; letter-spacing: 0.06em; }
+  .q-text { font-family: 'DM Serif Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 2rem; }
+  .options-grid { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 14px 18px; text-align: left; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; color: var(--color-text-primary); }
+  .opt-btn:hover { border-color: var(--color-text-primary); background: var(--color-background-secondary); }
+  .opt-btn.selected { border-color: var(--color-text-primary); border-width: 1.5px; background: var(--color-background-secondary); }
+  .opt-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
+  .back-btn { background: none; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; color: var(--color-text-secondary); }
+  .next-btn { background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); padding: 10px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
+  .next-btn.ready { opacity: 1; pointer-events: auto; }
+
+  /* Email gate */
+  .gate-wrap { max-width: 480px; margin: 0 auto; text-align: center; padding: 2rem 0; }
+  .gate-wrap h2 { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 0.75rem; }
+  .gate-wrap p { color: var(--color-text-secondary); font-size: 15px; margin-bottom: 1.5rem; line-height: 1.6; }
+  .field-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
+  .field-group input { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; background: var(--color-background-primary); color: var(--color-text-primary); }
+  .field-group input:focus { outline: none; border-color: var(--color-text-primary); }
+  .privacy { font-size: 12px; color: var(--color-text-secondary); margin-top: 0.75rem; }
+
+  /* Loading */
+  .loading-wrap { max-width: 480px; margin: 0 auto; text-align: center; padding: 3rem 0; }
+  .spinner { width: 48px; height: 48px; border: 2px solid var(--color-border-tertiary); border-top-color: var(--color-text-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1.5rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-wrap h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 0.5rem; }
+  .loading-wrap p { color: var(--color-text-secondary); font-size: 14px; }
+
+  /* Results */
+  .results-wrap { max-width: 580px; margin: 0 auto; }
+  .score-hero { text-align: center; margin-bottom: 2rem; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--color-text-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; flex-direction: column; }
+  .score-num { font-family: 'DM Serif Display', serif; font-size: 42px; line-height: 1; }
+  .score-label { font-size: 11px; color: var(--color-text-secondary); letter-spacing: 0.08em; }
+  .score-hero h2 { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 0.5rem; }
+  .score-hero p { color: var(--color-text-secondary); font-size: 14px; }
+
+  .ai-output { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin: 1.5rem 0; font-size: 14px; line-height: 1.75; color: var(--color-text-primary); border: 0.5px solid var(--color-border-tertiary); white-space: pre-wrap; }
+  .ai-output .typing { display: inline-block; width: 6px; height: 14px; background: var(--color-text-primary); animation: blink 0.7s step-end infinite; vertical-align: text-bottom; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1.5rem 0; }
+  .cat-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; }
+  .cat-name { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .cat-score { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 6px; }
+  .cat-bar { height: 3px; background: var(--color-background-secondary); border-radius: 2px; overflow: hidden; }
+  .cat-fill { height: 100%; border-radius: 2px; background: var(--color-text-primary); transition: width 1s ease 0.3s; }
+
+  .cta-section { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.5rem; text-align: center; margin-top: 1.5rem; border: 0.5px solid var(--color-border-tertiary); }
+  .cta-section h3 { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 0.5rem; }
+  .cta-section p { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1rem; }
+  .restart-link { display: inline-block; margin-top: 1rem; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; text-decoration: underline; }
+</style>
+
+<div id="app">
+  <h2 class="sr-only" style="position:absolute;left:-9999px;">AI Marketing Score — free marketing assessment tool</h2>
+
+  <!-- Landing -->
+  <div class="screen active" id="screen-landing">
+    <div class="landing">
+      <div class="badge">Free · 2 min · Instant results</div>
+      <h1>Your marketing is either<br><em>working or it isn't.</em><br>Find out now.</h1>
+      <p class="sub">Answer 8 quick questions and get a personalized AI marketing score + a custom action plan — built for your business.</p>
+      <div class="stats-row">
+        <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">Questions</div></div>
+        <div class="stat-item"><div class="stat-num">2min</div><div class="stat-label">To complete</div></div>
+        <div class="stat-item"><div class="stat-num">AI</div><div class="stat-label">Powered analysis</div></div>
+      </div>
+      <button class="cta-btn" onclick="startQuiz()">Get my free marketing score →</button>
+      <p class="trust">No spam. No sales calls. Just your score.</p>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+      <div class="q-counter" id="q-counter">Question 1 of 8</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options-grid" id="options"></div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="prevQ()">← Back</button>
+        <button class="next-btn" id="next-btn" onclick="nextQ()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Gate -->
+  <div class="screen" id="screen-gate">
+    <div class="gate-wrap">
+      <div style="font-size:32px;margin-bottom:1rem;">📊</div>
+      <h2>Your score is ready.</h2>
+      <p>Enter your details below to unlock your AI marketing score and personalized action plan.</p>
+      <div class="field-group">
+        <input type="text" id="lead-name" placeholder="Your first name" />
+        <input type="email" id="lead-email" placeholder="Your work email" />
+        <input type="text" id="lead-company" placeholder="Company name (optional)" />
+      </div>
+      <button class="cta-btn" onclick="submitLead()">Unlock my score →</button>
+      <p class="privacy">🔒 Your info is safe. We never share or sell your data.</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <h3>Analyzing your marketing...</h3>
+      <p id="loading-msg">Running your answers through our AI marketing model</p>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="screen" id="screen-results">
+    <div class="results-wrap">
+      <div class="score-hero">
+        <div class="score-circle">
+          <div class="score-num" id="final-score">–</div>
+          <div class="score-label">/ 100</div>
+        </div>
+        <h2 id="score-headline">Your Marketing Score</h2>
+        <p id="score-sub"></p>
+      </div>
+
+      <div class="cat-grid" id="cat-grid"></div>
+
+      <div class="ai-output" id="ai-output"></div>
+
+      <div class="cta-section">
+        <h3>Want to fix your biggest gaps?</h3>
+        <p>Book a free 20-min strategy call and we'll walk through your results together.</p>
+        <button class="cta-btn" style="max-width:280px;" onclick="alert('This would open your booking link!')">Book a free strategy call →</button>
+      </div>
+
+      <p class="restart-link" onclick="restart()">← Start over</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { text: "How would you describe your current marketing strategy?", icon: "🎯", category: "Strategy", options: [
+    { label: "We have a documented, data-driven strategy", score: 10 },
+    { label: "We have a rough plan but it's not documented", score: 6 },
+    { label: "We mostly do things reactively", score: 3 },
+    { label: "We don't really have a strategy", score: 0 }
+  ]},
+  { text: "How active is your content marketing (blogs, videos, podcasts)?", icon: "✍️", category: "Content", options: [
+    { label: "We publish consistently every week", score: 10 },
+    { label: "We publish a few times a month", score: 7 },
+    { label: "We post occasionally when we have time", score: 3 },
+    { label: "We rarely or never publish content", score: 0 }
+  ]},
+  { text: "How well are you using paid advertising (Google, Meta, LinkedIn)?", icon: "📣", category: "Paid Ads", options: [
+    { label: "Active campaigns with regular optimization", score: 10 },
+    { label: "Running some ads but not actively optimizing", score: 5 },
+    { label: "Tried ads in the past but stopped", score: 2 },
+    { label: "Not using paid ads at all", score: 0 }
+  ]},
+  { text: "How would you rate your SEO presence?", icon: "🔍", category: "SEO", options: [
+    { label: "We rank well and get consistent organic traffic", score: 10 },
+    { label: "We do some SEO but results are inconsistent", score: 6 },
+    { label: "We've done minimal SEO work", score: 2 },
+    { label: "We haven't focused on SEO at all", score: 0 }
+  ]},
+  { text: "How effective is your email marketing?", icon: "📧", category: "Email", options: [
+    { label: "We have an engaged list and automated sequences", score: 10 },
+    { label: "We send newsletters but no automation", score: 5 },
+    { label: "We have a list but rarely email them", score: 2 },
+    { label: "We don't do email marketing", score: 0 }
+  ]},
+  { text: "How well do you track marketing performance?", icon: "📈", category: "Analytics", options: [
+    { label: "We track ROI, CAC, LTV and act on data", score: 10 },
+    { label: "We track some metrics but don't act on them", score: 5 },
+    { label: "We check Google Analytics occasionally", score: 2 },
+    { label: "We don't track marketing data", score: 0 }
+  ]},
+  { text: "How active is your social media presence?", icon: "📱", category: "Social Media", options: [
+    { label: "Posting daily with a clear content strategy", score: 10 },
+    { label: "Posting a few times a week", score: 7 },
+    { label: "Posting occasionally or inconsistently", score: 3 },
+    { label: "Rarely or never post on social media", score: 0 }
+  ]},
+  { text: "How effective is your lead generation?", icon: "🧲", category: "Lead Gen", options: [
+    { label: "We have reliable, predictable lead flow", score: 10 },
+    { label: "Leads come in but inconsistently", score: 6 },
+    { label: "We struggle to generate enough leads", score: 2 },
+    { label: "Lead generation is a major problem for us", score: 0 }
+  ]}
+];
+
+let current = 0;
+let answers = [];
+let leadData = {};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function startQuiz() { current = 0; answers = []; showScreen('quiz'); renderQ(); }
+
+function renderQ() {
+  const q = questions[current];
+  document.getElementById('q-counter').textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('progress').style.width = `${((current) / questions.length) * 100}%`;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (answers[current] === i ? ' selected' : '');
+    btn.innerHTML = `<div class="opt-icon">${q.icon}</div><span>${opt.label}</span>`;
+    btn.onclick = () => selectOpt(i);
+    opts.appendChild(btn);
+  });
+  const nb = document.getElementById('next-btn');
+  nb.textContent = current === questions.length - 1 ? 'See my score →' : 'Next →';
+  nb.classList.toggle('ready', answers[current] !== undefined);
+}
+
+function selectOpt(i) {
+  answers[current] = i;
+  document.querySelectorAll('.opt-btn').forEach((b, idx) => b.classList.toggle('selected', idx === i));
+  document.getElementById('next-btn').classList.add('ready');
+}
+
+function nextQ() {
+  if (answers[current] === undefined) return;
+  if (current < questions.length - 1) { current++; renderQ(); }
+  else { showScreen('gate'); }
+}
+
+function prevQ() {
+  if (current > 0) { current--; renderQ(); }
+  else { showScreen('landing'); }
+}
+
+function submitLead() {
+  const name = document.getElementById('lead-name').value.trim();
+  const email = document.getElementById('lead-email').value.trim();
+  if (!name || !email) { alert('Please enter your name and email.'); return; }
+  leadData = { name, email, company: document.getElementById('lead-company').value.trim() };
+  showScreen('loading');
+  analyzeWithAI();
+}
+
+function calcScore() {
+  return answers.reduce((sum, ans, i) => sum + questions[i].options[ans].score, 0);
+}
+
+function getCategories() {
+  return questions.map((q, i) => ({
+    name: q.category,
+    score: questions[i].options[answers[i]].score,
+    max: 10
+  }));
+}
+
+async function analyzeWithAI() {
+  const msgs = [
+    { role: "user", content: `You are an expert marketing consultant. A business owner just completed a marketing assessment. Here are their answers:
+
+${questions.map((q, i) => `${q.category}: ${q.options[answers[i]].label}`).join('\n')}
+
+Their total score is ${calcScore()} out of 80.
+
+Write a concise, personalized marketing analysis (3-4 short paragraphs). Be specific about their weaknesses and give 2-3 concrete, prioritized action items. Use plain text only, no markdown symbols. Be direct and helpful — like a trusted advisor. Address them as a business owner.` }
+  ];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: msgs })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || 'Unable to generate analysis.';
+    showResults(text);
+  } catch(e) {
+    showResults('We analyzed your marketing profile. Based on your responses, there are clear opportunities to strengthen your digital presence, content strategy, and lead generation systems. Focus on building consistent habits before scaling paid channels.');
+  }
+}
+
+function showResults(analysis) {
+  showScreen('results');
+  const raw = calcScore();
+  const normalized = Math.round((raw / 80) * 100);
+  const cats = getCategories();
+
+  document.getElementById('final-score').textContent = normalized;
+
+  const headlines = normalized >= 75 ? ['Strong Marketing Foundation', 'You\'re doing well — now let\'s optimize.']
+    : normalized >= 50 ? ['Solid Start, Clear Gaps', 'You have the basics. Now it\'s time to scale.']
+    : normalized >= 25 ? ['Room for Growth', 'Several key areas need attention.']
+    : ['Marketing Needs Work', 'The good news: fixing this will have a big impact.'];
+
+  document.getElementById('score-headline').textContent = headlines[0];
+  document.getElementById('score-sub').textContent = headlines[1];
+
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  cats.forEach(c => {
+    const pct = Math.round((c.score / c.max) * 100);
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.innerHTML = `<div class="cat-name">${c.name}</div><div class="cat-score">${pct}</div><div class="cat-bar"><div class="cat-fill" style="width:0%" data-w="${pct}%"></div></div>`;
+    grid.appendChild(div);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.cat-fill').forEach(el => el.style.width = el.dataset.w);
+  }, 100);
+
+  const out = document.getElementById('ai-output');
+  out.innerHTML = '<span class="typing"></span>';
+  let i = 0;
+  const words = analysis.split('');
+  const interval = setInterval(() => {
+    if (i < words.length) {
+      out.textContent = analysis.substring(0, i + 1);
+      i += 3;
+    } else {
+      out.textContent = analysis;
+      clearInterval(interval);
+    }
+  }, 12);
+}
+
+function restart() { answers = []; leadData = {}; showScreen('landing'); }
+</script>
